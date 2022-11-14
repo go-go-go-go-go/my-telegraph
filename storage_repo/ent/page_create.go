@@ -19,6 +19,12 @@ type PageCreate struct {
 	hooks    []Hook
 }
 
+// SetAccountID sets the "account_id" field.
+func (pc *PageCreate) SetAccountID(i int) *PageCreate {
+	pc.mutation.SetAccountID(i)
+	return pc
+}
+
 // SetPath sets the "path" field.
 func (pc *PageCreate) SetPath(s string) *PageCreate {
 	pc.mutation.SetPath(s)
@@ -32,8 +38,8 @@ func (pc *PageCreate) SetTitle(s string) *PageCreate {
 }
 
 // SetContent sets the "content" field.
-func (pc *PageCreate) SetContent(m map[string]interface{}) *PageCreate {
-	pc.mutation.SetContent(m)
+func (pc *PageCreate) SetContent(s string) *PageCreate {
+	pc.mutation.SetContent(s)
 	return pc
 }
 
@@ -117,20 +123,6 @@ func (pc *PageCreate) SetViews(i int) *PageCreate {
 func (pc *PageCreate) SetNillableViews(i *int) *PageCreate {
 	if i != nil {
 		pc.SetViews(*i)
-	}
-	return pc
-}
-
-// SetCanEdit sets the "can_edit" field.
-func (pc *PageCreate) SetCanEdit(b bool) *PageCreate {
-	pc.mutation.SetCanEdit(b)
-	return pc
-}
-
-// SetNillableCanEdit sets the "can_edit" field if the given value is not nil.
-func (pc *PageCreate) SetNillableCanEdit(b *bool) *PageCreate {
-	if b != nil {
-		pc.SetCanEdit(*b)
 	}
 	return pc
 }
@@ -236,14 +228,13 @@ func (pc *PageCreate) defaults() {
 		v := page.DefaultViews
 		pc.mutation.SetViews(v)
 	}
-	if _, ok := pc.mutation.CanEdit(); !ok {
-		v := page.DefaultCanEdit
-		pc.mutation.SetCanEdit(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (pc *PageCreate) check() error {
+	if _, ok := pc.mutation.AccountID(); !ok {
+		return &ValidationError{Name: "account_id", err: errors.New(`ent: missing required field "Page.account_id"`)}
+	}
 	if _, ok := pc.mutation.Path(); !ok {
 		return &ValidationError{Name: "path", err: errors.New(`ent: missing required field "Page.path"`)}
 	}
@@ -263,6 +254,11 @@ func (pc *PageCreate) check() error {
 	if _, ok := pc.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Page.content"`)}
 	}
+	if v, ok := pc.mutation.Content(); ok {
+		if err := page.ContentValidator(v); err != nil {
+			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Page.content": %w`, err)}
+		}
+	}
 	if _, ok := pc.mutation.URL(); !ok {
 		return &ValidationError{Name: "url", err: errors.New(`ent: missing required field "Page.url"`)}
 	}
@@ -280,9 +276,6 @@ func (pc *PageCreate) check() error {
 	}
 	if _, ok := pc.mutation.Views(); !ok {
 		return &ValidationError{Name: "views", err: errors.New(`ent: missing required field "Page.views"`)}
-	}
-	if _, ok := pc.mutation.CanEdit(); !ok {
-		return &ValidationError{Name: "can_edit", err: errors.New(`ent: missing required field "Page.can_edit"`)}
 	}
 	return nil
 }
@@ -311,6 +304,10 @@ func (pc *PageCreate) createSpec() (*Page, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	if value, ok := pc.mutation.AccountID(); ok {
+		_spec.SetField(page.FieldAccountID, field.TypeInt, value)
+		_node.AccountID = value
+	}
 	if value, ok := pc.mutation.Path(); ok {
 		_spec.SetField(page.FieldPath, field.TypeString, value)
 		_node.Path = value
@@ -320,7 +317,7 @@ func (pc *PageCreate) createSpec() (*Page, *sqlgraph.CreateSpec) {
 		_node.Title = value
 	}
 	if value, ok := pc.mutation.Content(); ok {
-		_spec.SetField(page.FieldContent, field.TypeJSON, value)
+		_spec.SetField(page.FieldContent, field.TypeString, value)
 		_node.Content = value
 	}
 	if value, ok := pc.mutation.URL(); ok {
@@ -346,10 +343,6 @@ func (pc *PageCreate) createSpec() (*Page, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.Views(); ok {
 		_spec.SetField(page.FieldViews, field.TypeInt, value)
 		_node.Views = value
-	}
-	if value, ok := pc.mutation.CanEdit(); ok {
-		_spec.SetField(page.FieldCanEdit, field.TypeBool, value)
-		_node.CanEdit = value
 	}
 	return _node, _spec
 }

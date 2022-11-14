@@ -10,4 +10,7 @@ type StorageRepo interface {
 	CreateAccount(account *models.Account) error
 	UpdateAccountAccessToken(access_token string, new_access_token string) (*models.Account, error)
 	GetAccountInfo(access_token string, fields []string) (*models.Account, error)
+	CreatePage(page *models.Page) error
+	GetPage(path string) (*models.Page, error)
+	EditPage(page_id int, page *models.Page) (*models.Page, error)
 }

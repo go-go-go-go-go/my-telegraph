@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"telegraph/apis"
+	"telegraph/config"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,5 +11,6 @@ import (
 func main() {
 	r := gin.Default()
 	apis.RegisterApis(r)
-	r.Run(":8080")
+	url := fmt.Sprintf("%s:%d", config.HOST, config.PORT)
+	r.Run(url)
 }

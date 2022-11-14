@@ -560,9 +560,11 @@ type PageMutation struct {
 	op            Op
 	typ           string
 	id            *int
+	account_id    *int
+	addaccount_id *int
 	_path         *string
 	title         *string
-	content       *map[string]interface{}
+	content       *string
 	url           *string
 	description   *string
 	author_name   *string
@@ -570,7 +572,6 @@ type PageMutation struct {
 	image_url     *string
 	views         *int
 	addviews      *int
-	can_edit      *bool
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*Page, error)
@@ -675,6 +676,62 @@ func (m *PageMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
+// SetAccountID sets the "account_id" field.
+func (m *PageMutation) SetAccountID(i int) {
+	m.account_id = &i
+	m.addaccount_id = nil
+}
+
+// AccountID returns the value of the "account_id" field in the mutation.
+func (m *PageMutation) AccountID() (r int, exists bool) {
+	v := m.account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccountID returns the old "account_id" field's value of the Page entity.
+// If the Page object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PageMutation) OldAccountID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccountID: %w", err)
+	}
+	return oldValue.AccountID, nil
+}
+
+// AddAccountID adds i to the "account_id" field.
+func (m *PageMutation) AddAccountID(i int) {
+	if m.addaccount_id != nil {
+		*m.addaccount_id += i
+	} else {
+		m.addaccount_id = &i
+	}
+}
+
+// AddedAccountID returns the value that was added to the "account_id" field in this mutation.
+func (m *PageMutation) AddedAccountID() (r int, exists bool) {
+	v := m.addaccount_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAccountID resets all changes to the "account_id" field.
+func (m *PageMutation) ResetAccountID() {
+	m.account_id = nil
+	m.addaccount_id = nil
+}
+
 // SetPath sets the "path" field.
 func (m *PageMutation) SetPath(s string) {
 	m._path = &s
@@ -748,12 +805,12 @@ func (m *PageMutation) ResetTitle() {
 }
 
 // SetContent sets the "content" field.
-func (m *PageMutation) SetContent(value map[string]interface{}) {
-	m.content = &value
+func (m *PageMutation) SetContent(s string) {
+	m.content = &s
 }
 
 // Content returns the value of the "content" field in the mutation.
-func (m *PageMutation) Content() (r map[string]interface{}, exists bool) {
+func (m *PageMutation) Content() (r string, exists bool) {
 	v := m.content
 	if v == nil {
 		return
@@ -764,7 +821,7 @@ func (m *PageMutation) Content() (r map[string]interface{}, exists bool) {
 // OldContent returns the old "content" field's value of the Page entity.
 // If the Page object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PageMutation) OldContent(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *PageMutation) OldContent(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldContent is only allowed on UpdateOne operations")
 	}
@@ -1019,42 +1076,6 @@ func (m *PageMutation) ResetViews() {
 	m.addviews = nil
 }
 
-// SetCanEdit sets the "can_edit" field.
-func (m *PageMutation) SetCanEdit(b bool) {
-	m.can_edit = &b
-}
-
-// CanEdit returns the value of the "can_edit" field in the mutation.
-func (m *PageMutation) CanEdit() (r bool, exists bool) {
-	v := m.can_edit
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCanEdit returns the old "can_edit" field's value of the Page entity.
-// If the Page object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PageMutation) OldCanEdit(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCanEdit is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCanEdit requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCanEdit: %w", err)
-	}
-	return oldValue.CanEdit, nil
-}
-
-// ResetCanEdit resets all changes to the "can_edit" field.
-func (m *PageMutation) ResetCanEdit() {
-	m.can_edit = nil
-}
-
 // Where appends a list predicates to the PageMutation builder.
 func (m *PageMutation) Where(ps ...predicate.Page) {
 	m.predicates = append(m.predicates, ps...)
@@ -1075,6 +1096,9 @@ func (m *PageMutation) Type() string {
 // AddedFields().
 func (m *PageMutation) Fields() []string {
 	fields := make([]string, 0, 10)
+	if m.account_id != nil {
+		fields = append(fields, page.FieldAccountID)
+	}
 	if m._path != nil {
 		fields = append(fields, page.FieldPath)
 	}
@@ -1102,9 +1126,6 @@ func (m *PageMutation) Fields() []string {
 	if m.views != nil {
 		fields = append(fields, page.FieldViews)
 	}
-	if m.can_edit != nil {
-		fields = append(fields, page.FieldCanEdit)
-	}
 	return fields
 }
 
@@ -1113,6 +1134,8 @@ func (m *PageMutation) Fields() []string {
 // schema.
 func (m *PageMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case page.FieldAccountID:
+		return m.AccountID()
 	case page.FieldPath:
 		return m.Path()
 	case page.FieldTitle:
@@ -1131,8 +1154,6 @@ func (m *PageMutation) Field(name string) (ent.Value, bool) {
 		return m.ImageURL()
 	case page.FieldViews:
 		return m.Views()
-	case page.FieldCanEdit:
-		return m.CanEdit()
 	}
 	return nil, false
 }
@@ -1142,6 +1163,8 @@ func (m *PageMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *PageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case page.FieldAccountID:
+		return m.OldAccountID(ctx)
 	case page.FieldPath:
 		return m.OldPath(ctx)
 	case page.FieldTitle:
@@ -1160,8 +1183,6 @@ func (m *PageMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldImageURL(ctx)
 	case page.FieldViews:
 		return m.OldViews(ctx)
-	case page.FieldCanEdit:
-		return m.OldCanEdit(ctx)
 	}
 	return nil, fmt.Errorf("unknown Page field %s", name)
 }
@@ -1171,6 +1192,13 @@ func (m *PageMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *PageMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case page.FieldAccountID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccountID(v)
+		return nil
 	case page.FieldPath:
 		v, ok := value.(string)
 		if !ok {
@@ -1186,7 +1214,7 @@ func (m *PageMutation) SetField(name string, value ent.Value) error {
 		m.SetTitle(v)
 		return nil
 	case page.FieldContent:
-		v, ok := value.(map[string]interface{})
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1234,13 +1262,6 @@ func (m *PageMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetViews(v)
 		return nil
-	case page.FieldCanEdit:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCanEdit(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Page field %s", name)
 }
@@ -1249,6 +1270,9 @@ func (m *PageMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *PageMutation) AddedFields() []string {
 	var fields []string
+	if m.addaccount_id != nil {
+		fields = append(fields, page.FieldAccountID)
+	}
 	if m.addviews != nil {
 		fields = append(fields, page.FieldViews)
 	}
@@ -1260,6 +1284,8 @@ func (m *PageMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *PageMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case page.FieldAccountID:
+		return m.AddedAccountID()
 	case page.FieldViews:
 		return m.AddedViews()
 	}
@@ -1271,6 +1297,13 @@ func (m *PageMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *PageMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case page.FieldAccountID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAccountID(v)
+		return nil
 	case page.FieldViews:
 		v, ok := value.(int)
 		if !ok {
@@ -1305,6 +1338,9 @@ func (m *PageMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *PageMutation) ResetField(name string) error {
 	switch name {
+	case page.FieldAccountID:
+		m.ResetAccountID()
+		return nil
 	case page.FieldPath:
 		m.ResetPath()
 		return nil
@@ -1331,9 +1367,6 @@ func (m *PageMutation) ResetField(name string) error {
 		return nil
 	case page.FieldViews:
 		m.ResetViews()
-		return nil
-	case page.FieldCanEdit:
-		m.ResetCanEdit()
 		return nil
 	}
 	return fmt.Errorf("unknown Page field %s", name)

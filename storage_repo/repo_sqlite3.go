@@ -2,10 +2,12 @@ package storage_repo
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"telegraph/models"
 	"telegraph/storage_repo/ent"
 	account_lib "telegraph/storage_repo/ent/account"
+	page_lib "telegraph/storage_repo/ent/page"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -32,15 +34,32 @@ func (s *StorageRepoSqlite3) Init(ctx context.Context) error {
 	return nil
 }
 
-func convert_type(u *ent.Account) *models.Account {
+func convert_account_type(u *ent.Account) *models.Account {
+	fmt.Println(u)
 	account := &models.Account{}
-	account.ID = u.ID
+	account.Id = u.ID
 	account.AuthorName = u.AuthorName
 	account.ShortName = u.ShortName
 	account.AccessToken = u.AccessToken
 	account.AuthorUrl = u.AuthorURL
 	account.AuthUrl = u.AuthURL
+	fmt.Println(account)
 	return account
+}
+
+func convert_page_type(u *ent.Page) *models.Page {
+	page := &models.Page{}
+	page.Id = u.ID
+	page.AccountId = u.AccountID
+	page.Content = u.Content
+	page.Description = u.Description
+	page.Path = u.Path
+	page.Title = u.Title
+	page.ImageUrl = u.ImageURL
+	page.Url = u.URL
+	page.AuthorUrl = u.AuthorURL
+	page.AuthorName = u.AuthorName
+	return page
 }
 
 func (s *StorageRepoSqlite3) CreateAccount(account *models.Account) error {
@@ -72,19 +91,87 @@ func (s *StorageRepoSqlite3) UpdateAccountAccessToken(access_token string, new_a
 	if err != nil {
 		return nil, err
 	}
-	return convert_type(t), err
+	return convert_account_type(t), err
 }
 
 func (s *StorageRepoSqlite3) GetAccountInfo(access_token string, fields []string) (*models.Account, error) {
-	u, err := s.client.Account.
+	t := s.client.Account.
 		Query().
-		Where(account_lib.AccessToken(access_token)).
-		Select(fields...).
-		Only(s.ctx)
+		Where(account_lib.AccessToken(access_token))
+	var u *ent.Account = nil
+	var err error = nil
+	if len(fields) > 0 {
+		u, err = t.Select(fields...).Only(s.ctx)
+	} else {
+		u, err = t.Only(s.ctx)
+	}
 	if err != nil {
 		return nil, err
 	}
 	log.Println("user returned: ", u)
-	account := convert_type(u)
+	account := convert_account_type(u)
 	return account, nil
+}
+
+func (s *StorageRepoSqlite3) CreatePage(page *models.Page) error {
+	u, err := s.client.Page.
+		Create().
+		SetAccountID(page.AccountId).
+		SetTitle(page.Title).
+		SetPath(page.Path).
+		SetDescription(page.Description).
+		SetImageURL(page.ImageUrl).
+		SetAuthorName(page.AuthorName).
+		SetAuthorURL(page.AuthorUrl).
+		SetContent(page.Content).
+		Save(s.ctx)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	log.Println("page was created: ", u)
+	return nil
+}
+
+func (s *StorageRepoSqlite3) GetPage(path string) (*models.Page, error) {
+	p, err := s.client.Page.
+		Query().
+		Where(page_lib.Path(path)).
+		Only(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("page returned: ", p)
+	page := convert_page_type(p)
+	return page, nil
+}
+
+func (s *StorageRepoSqlite3) EditPage(page_id int, page *models.Page) (*models.Page, error) {
+	t := s.client.Page.
+		UpdateOneID(page_id)
+	if page.Title != "" {
+		t = t.SetTitle(page.Title)
+	}
+	if page.Description != "" {
+		t = t.SetDescription(page.Description)
+	}
+	if page.ImageUrl != "" {
+		t = t.SetImageURL(page.ImageUrl)
+	}
+	if page.AuthorName != "" {
+		t = t.SetAuthorName(page.AuthorName)
+	}
+	if page.AuthorUrl != "" {
+		t = t.SetAuthorURL(page.AuthorUrl)
+	}
+	if page.Content != "" {
+		t = t.SetContent(page.Content)
+	}
+	u, err := t.Save(s.ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	log.Println("page was updated: ", u)
+	return convert_page_type(u), nil
 }

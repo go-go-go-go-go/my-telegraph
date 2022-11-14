@@ -19,5 +19,11 @@ func RegisterApis(r *gin.Engine) *gin.Engine {
 	r.POST("/getAccountInfo", api_handler.GetAccountInfo)
 	r.GET("/revokeAccessToken", api_handler.RevokeAccessToken)
 	r.POST("/revokeAccessToken", api_handler.RevokeAccessToken)
+	r.GET("/createPage", api_handler.CreatePage)
+	r.POST("/createPage", api_handler.CreatePage)
+	r.GET("/getPage/:path", api_handler.GetPage)
+	r.POST("/getPage/:path", api_handler.GetPage)
+	r.GET("/editPage/:path", api_handler.EditPage)
+	r.POST("/editPage/:path", api_handler.EditPage)
 	return r
 }

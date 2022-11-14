@@ -22,26 +22,40 @@ var (
 		Name:       "accounts",
 		Columns:    AccountsColumns,
 		PrimaryKey: []*schema.Column{AccountsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "account_access_token",
+				Unique:  true,
+				Columns: []*schema.Column{AccountsColumns[4]},
+			},
+		},
 	}
 	// PagesColumns holds the columns for the "pages" table.
 	PagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "account_id", Type: field.TypeInt},
 		{Name: "path", Type: field.TypeString},
 		{Name: "title", Type: field.TypeString},
-		{Name: "content", Type: field.TypeJSON},
+		{Name: "content", Type: field.TypeString},
 		{Name: "url", Type: field.TypeString, Default: ""},
 		{Name: "description", Type: field.TypeString, Default: ""},
 		{Name: "author_name", Type: field.TypeString, Default: ""},
 		{Name: "author_url", Type: field.TypeString, Default: ""},
 		{Name: "image_url", Type: field.TypeString, Default: ""},
 		{Name: "views", Type: field.TypeInt, Default: 0},
-		{Name: "can_edit", Type: field.TypeBool, Default: false},
 	}
 	// PagesTable holds the schema information for the "pages" table.
 	PagesTable = &schema.Table{
 		Name:       "pages",
 		Columns:    PagesColumns,
 		PrimaryKey: []*schema.Column{PagesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "page_path",
+				Unique:  true,
+				Columns: []*schema.Column{PagesColumns[2]},
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{

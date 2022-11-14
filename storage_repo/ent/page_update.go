@@ -27,6 +27,19 @@ func (pu *PageUpdate) Where(ps ...predicate.Page) *PageUpdate {
 	return pu
 }
 
+// SetAccountID sets the "account_id" field.
+func (pu *PageUpdate) SetAccountID(i int) *PageUpdate {
+	pu.mutation.ResetAccountID()
+	pu.mutation.SetAccountID(i)
+	return pu
+}
+
+// AddAccountID adds i to the "account_id" field.
+func (pu *PageUpdate) AddAccountID(i int) *PageUpdate {
+	pu.mutation.AddAccountID(i)
+	return pu
+}
+
 // SetPath sets the "path" field.
 func (pu *PageUpdate) SetPath(s string) *PageUpdate {
 	pu.mutation.SetPath(s)
@@ -40,8 +53,8 @@ func (pu *PageUpdate) SetTitle(s string) *PageUpdate {
 }
 
 // SetContent sets the "content" field.
-func (pu *PageUpdate) SetContent(m map[string]interface{}) *PageUpdate {
-	pu.mutation.SetContent(m)
+func (pu *PageUpdate) SetContent(s string) *PageUpdate {
+	pu.mutation.SetContent(s)
 	return pu
 }
 
@@ -136,20 +149,6 @@ func (pu *PageUpdate) AddViews(i int) *PageUpdate {
 	return pu
 }
 
-// SetCanEdit sets the "can_edit" field.
-func (pu *PageUpdate) SetCanEdit(b bool) *PageUpdate {
-	pu.mutation.SetCanEdit(b)
-	return pu
-}
-
-// SetNillableCanEdit sets the "can_edit" field if the given value is not nil.
-func (pu *PageUpdate) SetNillableCanEdit(b *bool) *PageUpdate {
-	if b != nil {
-		pu.SetCanEdit(*b)
-	}
-	return pu
-}
-
 // Mutation returns the PageMutation object of the builder.
 func (pu *PageUpdate) Mutation() *PageMutation {
 	return pu.mutation
@@ -227,6 +226,11 @@ func (pu *PageUpdate) check() error {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Page.title": %w`, err)}
 		}
 	}
+	if v, ok := pu.mutation.Content(); ok {
+		if err := page.ContentValidator(v); err != nil {
+			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Page.content": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -248,6 +252,12 @@ func (pu *PageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := pu.mutation.AccountID(); ok {
+		_spec.SetField(page.FieldAccountID, field.TypeInt, value)
+	}
+	if value, ok := pu.mutation.AddedAccountID(); ok {
+		_spec.AddField(page.FieldAccountID, field.TypeInt, value)
+	}
 	if value, ok := pu.mutation.Path(); ok {
 		_spec.SetField(page.FieldPath, field.TypeString, value)
 	}
@@ -255,7 +265,7 @@ func (pu *PageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(page.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.Content(); ok {
-		_spec.SetField(page.FieldContent, field.TypeJSON, value)
+		_spec.SetField(page.FieldContent, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.URL(); ok {
 		_spec.SetField(page.FieldURL, field.TypeString, value)
@@ -278,9 +288,6 @@ func (pu *PageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.AddedViews(); ok {
 		_spec.AddField(page.FieldViews, field.TypeInt, value)
 	}
-	if value, ok := pu.mutation.CanEdit(); ok {
-		_spec.SetField(page.FieldCanEdit, field.TypeBool, value)
-	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{page.Label}
@@ -300,6 +307,19 @@ type PageUpdateOne struct {
 	mutation *PageMutation
 }
 
+// SetAccountID sets the "account_id" field.
+func (puo *PageUpdateOne) SetAccountID(i int) *PageUpdateOne {
+	puo.mutation.ResetAccountID()
+	puo.mutation.SetAccountID(i)
+	return puo
+}
+
+// AddAccountID adds i to the "account_id" field.
+func (puo *PageUpdateOne) AddAccountID(i int) *PageUpdateOne {
+	puo.mutation.AddAccountID(i)
+	return puo
+}
+
 // SetPath sets the "path" field.
 func (puo *PageUpdateOne) SetPath(s string) *PageUpdateOne {
 	puo.mutation.SetPath(s)
@@ -313,8 +333,8 @@ func (puo *PageUpdateOne) SetTitle(s string) *PageUpdateOne {
 }
 
 // SetContent sets the "content" field.
-func (puo *PageUpdateOne) SetContent(m map[string]interface{}) *PageUpdateOne {
-	puo.mutation.SetContent(m)
+func (puo *PageUpdateOne) SetContent(s string) *PageUpdateOne {
+	puo.mutation.SetContent(s)
 	return puo
 }
 
@@ -409,20 +429,6 @@ func (puo *PageUpdateOne) AddViews(i int) *PageUpdateOne {
 	return puo
 }
 
-// SetCanEdit sets the "can_edit" field.
-func (puo *PageUpdateOne) SetCanEdit(b bool) *PageUpdateOne {
-	puo.mutation.SetCanEdit(b)
-	return puo
-}
-
-// SetNillableCanEdit sets the "can_edit" field if the given value is not nil.
-func (puo *PageUpdateOne) SetNillableCanEdit(b *bool) *PageUpdateOne {
-	if b != nil {
-		puo.SetCanEdit(*b)
-	}
-	return puo
-}
-
 // Mutation returns the PageMutation object of the builder.
 func (puo *PageUpdateOne) Mutation() *PageMutation {
 	return puo.mutation
@@ -513,6 +519,11 @@ func (puo *PageUpdateOne) check() error {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Page.title": %w`, err)}
 		}
 	}
+	if v, ok := puo.mutation.Content(); ok {
+		if err := page.ContentValidator(v); err != nil {
+			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Page.content": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -551,6 +562,12 @@ func (puo *PageUpdateOne) sqlSave(ctx context.Context) (_node *Page, err error) 
 			}
 		}
 	}
+	if value, ok := puo.mutation.AccountID(); ok {
+		_spec.SetField(page.FieldAccountID, field.TypeInt, value)
+	}
+	if value, ok := puo.mutation.AddedAccountID(); ok {
+		_spec.AddField(page.FieldAccountID, field.TypeInt, value)
+	}
 	if value, ok := puo.mutation.Path(); ok {
 		_spec.SetField(page.FieldPath, field.TypeString, value)
 	}
@@ -558,7 +575,7 @@ func (puo *PageUpdateOne) sqlSave(ctx context.Context) (_node *Page, err error) 
 		_spec.SetField(page.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.Content(); ok {
-		_spec.SetField(page.FieldContent, field.TypeJSON, value)
+		_spec.SetField(page.FieldContent, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.URL(); ok {
 		_spec.SetField(page.FieldURL, field.TypeString, value)
@@ -580,9 +597,6 @@ func (puo *PageUpdateOne) sqlSave(ctx context.Context) (_node *Page, err error) 
 	}
 	if value, ok := puo.mutation.AddedViews(); ok {
 		_spec.AddField(page.FieldViews, field.TypeInt, value)
-	}
-	if value, ok := puo.mutation.CanEdit(); ok {
-		_spec.SetField(page.FieldCanEdit, field.TypeBool, value)
 	}
 	_node = &Page{config: puo.config}
 	_spec.Assign = _node.assignValues

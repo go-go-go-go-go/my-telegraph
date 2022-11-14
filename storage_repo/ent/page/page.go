@@ -7,6 +7,8 @@ const (
 	Label = "page"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldAccountID holds the string denoting the account_id field in the database.
+	FieldAccountID = "account_id"
 	// FieldPath holds the string denoting the path field in the database.
 	FieldPath = "path"
 	// FieldTitle holds the string denoting the title field in the database.
@@ -25,8 +27,6 @@ const (
 	FieldImageURL = "image_url"
 	// FieldViews holds the string denoting the views field in the database.
 	FieldViews = "views"
-	// FieldCanEdit holds the string denoting the can_edit field in the database.
-	FieldCanEdit = "can_edit"
 	// Table holds the table name of the page in the database.
 	Table = "pages"
 )
@@ -34,6 +34,7 @@ const (
 // Columns holds all SQL columns for page fields.
 var Columns = []string{
 	FieldID,
+	FieldAccountID,
 	FieldPath,
 	FieldTitle,
 	FieldContent,
@@ -43,7 +44,6 @@ var Columns = []string{
 	FieldAuthorURL,
 	FieldImageURL,
 	FieldViews,
-	FieldCanEdit,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -61,6 +61,8 @@ var (
 	PathValidator func(string) error
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
+	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	ContentValidator func(string) error
 	// DefaultURL holds the default value on creation for the "url" field.
 	DefaultURL string
 	// DefaultDescription holds the default value on creation for the "description" field.
@@ -73,6 +75,4 @@ var (
 	DefaultImageURL string
 	// DefaultViews holds the default value on creation for the "views" field.
 	DefaultViews int
-	// DefaultCanEdit holds the default value on creation for the "can_edit" field.
-	DefaultCanEdit bool
 )

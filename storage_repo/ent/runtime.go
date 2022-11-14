@@ -37,39 +37,39 @@ func init() {
 	pageFields := schema.Page{}.Fields()
 	_ = pageFields
 	// pageDescPath is the schema descriptor for path field.
-	pageDescPath := pageFields[0].Descriptor()
+	pageDescPath := pageFields[1].Descriptor()
 	// page.PathValidator is a validator for the "path" field. It is called by the builders before save.
 	page.PathValidator = pageDescPath.Validators[0].(func(string) error)
 	// pageDescTitle is the schema descriptor for title field.
-	pageDescTitle := pageFields[1].Descriptor()
+	pageDescTitle := pageFields[2].Descriptor()
 	// page.TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	page.TitleValidator = pageDescTitle.Validators[0].(func(string) error)
+	// pageDescContent is the schema descriptor for content field.
+	pageDescContent := pageFields[3].Descriptor()
+	// page.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	page.ContentValidator = pageDescContent.Validators[0].(func(string) error)
 	// pageDescURL is the schema descriptor for url field.
-	pageDescURL := pageFields[3].Descriptor()
+	pageDescURL := pageFields[4].Descriptor()
 	// page.DefaultURL holds the default value on creation for the url field.
 	page.DefaultURL = pageDescURL.Default.(string)
 	// pageDescDescription is the schema descriptor for description field.
-	pageDescDescription := pageFields[4].Descriptor()
+	pageDescDescription := pageFields[5].Descriptor()
 	// page.DefaultDescription holds the default value on creation for the description field.
 	page.DefaultDescription = pageDescDescription.Default.(string)
 	// pageDescAuthorName is the schema descriptor for author_name field.
-	pageDescAuthorName := pageFields[5].Descriptor()
+	pageDescAuthorName := pageFields[6].Descriptor()
 	// page.DefaultAuthorName holds the default value on creation for the author_name field.
 	page.DefaultAuthorName = pageDescAuthorName.Default.(string)
 	// pageDescAuthorURL is the schema descriptor for author_url field.
-	pageDescAuthorURL := pageFields[6].Descriptor()
+	pageDescAuthorURL := pageFields[7].Descriptor()
 	// page.DefaultAuthorURL holds the default value on creation for the author_url field.
 	page.DefaultAuthorURL = pageDescAuthorURL.Default.(string)
 	// pageDescImageURL is the schema descriptor for image_url field.
-	pageDescImageURL := pageFields[7].Descriptor()
+	pageDescImageURL := pageFields[8].Descriptor()
 	// page.DefaultImageURL holds the default value on creation for the image_url field.
 	page.DefaultImageURL = pageDescImageURL.Default.(string)
 	// pageDescViews is the schema descriptor for views field.
-	pageDescViews := pageFields[8].Descriptor()
+	pageDescViews := pageFields[9].Descriptor()
 	// page.DefaultViews holds the default value on creation for the views field.
 	page.DefaultViews = pageDescViews.Default.(int)
-	// pageDescCanEdit is the schema descriptor for can_edit field.
-	pageDescCanEdit := pageFields[9].Descriptor()
-	// page.DefaultCanEdit holds the default value on creation for the can_edit field.
-	page.DefaultCanEdit = pageDescCanEdit.Default.(bool)
 }

@@ -1,7 +1,7 @@
 package models
 
 type Account struct {
-	ID          any
+	Id          int
 	ShortName   string `form:"short_name" json:"short_name" binding:"required"`
 	AuthorName  string `form:"author_name" json:"author_name"`
 	AuthorUrl   string `form:"author_url" json:"author_url"`

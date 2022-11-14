@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"telegraph/storage_repo/ent/page"
@@ -16,12 +15,14 @@ type Page struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// AccountID holds the value of the "account_id" field.
+	AccountID int `json:"account_id,omitempty"`
 	// Path holds the value of the "path" field.
 	Path string `json:"path,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Content holds the value of the "content" field.
-	Content map[string]interface{} `json:"content,omitempty"`
+	Content string `json:"content,omitempty"`
 	// URL holds the value of the "url" field.
 	URL string `json:"url,omitempty"`
 	// Description holds the value of the "description" field.
@@ -34,8 +35,6 @@ type Page struct {
 	ImageURL string `json:"image_url,omitempty"`
 	// Views holds the value of the "views" field.
 	Views int `json:"views,omitempty"`
-	// CanEdit holds the value of the "can_edit" field.
-	CanEdit bool `json:"can_edit,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -43,13 +42,9 @@ func (*Page) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case page.FieldContent:
-			values[i] = new([]byte)
-		case page.FieldCanEdit:
-			values[i] = new(sql.NullBool)
-		case page.FieldID, page.FieldViews:
+		case page.FieldID, page.FieldAccountID, page.FieldViews:
 			values[i] = new(sql.NullInt64)
-		case page.FieldPath, page.FieldTitle, page.FieldURL, page.FieldDescription, page.FieldAuthorName, page.FieldAuthorURL, page.FieldImageURL:
+		case page.FieldPath, page.FieldTitle, page.FieldContent, page.FieldURL, page.FieldDescription, page.FieldAuthorName, page.FieldAuthorURL, page.FieldImageURL:
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Page", columns[i])
@@ -72,6 +67,12 @@ func (pa *Page) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			pa.ID = int(value.Int64)
+		case page.FieldAccountID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field account_id", values[i])
+			} else if value.Valid {
+				pa.AccountID = int(value.Int64)
+			}
 		case page.FieldPath:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field path", values[i])
@@ -85,12 +86,10 @@ func (pa *Page) assignValues(columns []string, values []any) error {
 				pa.Title = value.String
 			}
 		case page.FieldContent:
-			if value, ok := values[i].(*[]byte); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field content", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &pa.Content); err != nil {
-					return fmt.Errorf("unmarshal field content: %w", err)
-				}
+			} else if value.Valid {
+				pa.Content = value.String
 			}
 		case page.FieldURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -128,12 +127,6 @@ func (pa *Page) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pa.Views = int(value.Int64)
 			}
-		case page.FieldCanEdit:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field can_edit", values[i])
-			} else if value.Valid {
-				pa.CanEdit = value.Bool
-			}
 		}
 	}
 	return nil
@@ -162,6 +155,9 @@ func (pa *Page) String() string {
 	var builder strings.Builder
 	builder.WriteString("Page(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", pa.ID))
+	builder.WriteString("account_id=")
+	builder.WriteString(fmt.Sprintf("%v", pa.AccountID))
+	builder.WriteString(", ")
 	builder.WriteString("path=")
 	builder.WriteString(pa.Path)
 	builder.WriteString(", ")
@@ -169,7 +165,7 @@ func (pa *Page) String() string {
 	builder.WriteString(pa.Title)
 	builder.WriteString(", ")
 	builder.WriteString("content=")
-	builder.WriteString(fmt.Sprintf("%v", pa.Content))
+	builder.WriteString(pa.Content)
 	builder.WriteString(", ")
 	builder.WriteString("url=")
 	builder.WriteString(pa.URL)
@@ -188,9 +184,6 @@ func (pa *Page) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("views=")
 	builder.WriteString(fmt.Sprintf("%v", pa.Views))
-	builder.WriteString(", ")
-	builder.WriteString("can_edit=")
-	builder.WriteString(fmt.Sprintf("%v", pa.CanEdit))
 	builder.WriteByte(')')
 	return builder.String()
 }

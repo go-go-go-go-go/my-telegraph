@@ -79,6 +79,13 @@ func IDLTE(id int) predicate.Page {
 	})
 }
 
+// AccountID applies equality check predicate on the "account_id" field. It's identical to AccountIDEQ.
+func AccountID(v int) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAccountID), v))
+	})
+}
+
 // Path applies equality check predicate on the "path" field. It's identical to PathEQ.
 func Path(v string) predicate.Page {
 	return predicate.Page(func(s *sql.Selector) {
@@ -90,6 +97,13 @@ func Path(v string) predicate.Page {
 func Title(v string) predicate.Page {
 	return predicate.Page(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldTitle), v))
+	})
+}
+
+// Content applies equality check predicate on the "content" field. It's identical to ContentEQ.
+func Content(v string) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldContent), v))
 	})
 }
 
@@ -135,10 +149,67 @@ func Views(v int) predicate.Page {
 	})
 }
 
-// CanEdit applies equality check predicate on the "can_edit" field. It's identical to CanEditEQ.
-func CanEdit(v bool) predicate.Page {
+// AccountIDEQ applies the EQ predicate on the "account_id" field.
+func AccountIDEQ(v int) predicate.Page {
 	return predicate.Page(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCanEdit), v))
+		s.Where(sql.EQ(s.C(FieldAccountID), v))
+	})
+}
+
+// AccountIDNEQ applies the NEQ predicate on the "account_id" field.
+func AccountIDNEQ(v int) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldAccountID), v))
+	})
+}
+
+// AccountIDIn applies the In predicate on the "account_id" field.
+func AccountIDIn(vs ...int) predicate.Page {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldAccountID), v...))
+	})
+}
+
+// AccountIDNotIn applies the NotIn predicate on the "account_id" field.
+func AccountIDNotIn(vs ...int) predicate.Page {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldAccountID), v...))
+	})
+}
+
+// AccountIDGT applies the GT predicate on the "account_id" field.
+func AccountIDGT(v int) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldAccountID), v))
+	})
+}
+
+// AccountIDGTE applies the GTE predicate on the "account_id" field.
+func AccountIDGTE(v int) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldAccountID), v))
+	})
+}
+
+// AccountIDLT applies the LT predicate on the "account_id" field.
+func AccountIDLT(v int) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldAccountID), v))
+	})
+}
+
+// AccountIDLTE applies the LTE predicate on the "account_id" field.
+func AccountIDLTE(v int) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldAccountID), v))
 	})
 }
 
@@ -337,6 +408,105 @@ func TitleEqualFold(v string) predicate.Page {
 func TitleContainsFold(v string) predicate.Page {
 	return predicate.Page(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldTitle), v))
+	})
+}
+
+// ContentEQ applies the EQ predicate on the "content" field.
+func ContentEQ(v string) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldContent), v))
+	})
+}
+
+// ContentNEQ applies the NEQ predicate on the "content" field.
+func ContentNEQ(v string) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldContent), v))
+	})
+}
+
+// ContentIn applies the In predicate on the "content" field.
+func ContentIn(vs ...string) predicate.Page {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldContent), v...))
+	})
+}
+
+// ContentNotIn applies the NotIn predicate on the "content" field.
+func ContentNotIn(vs ...string) predicate.Page {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldContent), v...))
+	})
+}
+
+// ContentGT applies the GT predicate on the "content" field.
+func ContentGT(v string) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldContent), v))
+	})
+}
+
+// ContentGTE applies the GTE predicate on the "content" field.
+func ContentGTE(v string) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldContent), v))
+	})
+}
+
+// ContentLT applies the LT predicate on the "content" field.
+func ContentLT(v string) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldContent), v))
+	})
+}
+
+// ContentLTE applies the LTE predicate on the "content" field.
+func ContentLTE(v string) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldContent), v))
+	})
+}
+
+// ContentContains applies the Contains predicate on the "content" field.
+func ContentContains(v string) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldContent), v))
+	})
+}
+
+// ContentHasPrefix applies the HasPrefix predicate on the "content" field.
+func ContentHasPrefix(v string) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldContent), v))
+	})
+}
+
+// ContentHasSuffix applies the HasSuffix predicate on the "content" field.
+func ContentHasSuffix(v string) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldContent), v))
+	})
+}
+
+// ContentEqualFold applies the EqualFold predicate on the "content" field.
+func ContentEqualFold(v string) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldContent), v))
+	})
+}
+
+// ContentContainsFold applies the ContainsFold predicate on the "content" field.
+func ContentContainsFold(v string) predicate.Page {
+	return predicate.Page(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldContent), v))
 	})
 }
 
@@ -896,20 +1066,6 @@ func ViewsLT(v int) predicate.Page {
 func ViewsLTE(v int) predicate.Page {
 	return predicate.Page(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldViews), v))
-	})
-}
-
-// CanEditEQ applies the EQ predicate on the "can_edit" field.
-func CanEditEQ(v bool) predicate.Page {
-	return predicate.Page(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCanEdit), v))
-	})
-}
-
-// CanEditNEQ applies the NEQ predicate on the "can_edit" field.
-func CanEditNEQ(v bool) predicate.Page {
-	return predicate.Page(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCanEdit), v))
 	})
 }
 

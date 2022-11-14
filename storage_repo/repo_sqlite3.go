@@ -43,7 +43,6 @@ func convert_account_type(u *ent.Account) *models.Account {
 	account.AccessToken = u.AccessToken
 	account.AuthorUrl = u.AuthorURL
 	account.AuthUrl = u.AuthURL
-	fmt.Println(account)
 	return account
 }
 
@@ -77,6 +76,31 @@ func (s *StorageRepoSqlite3) CreateAccount(account *models.Account) (*models.Acc
 	}
 	log.Println("user was created: ", u)
 	return convert_account_type(u), nil
+}
+
+func (s *StorageRepoSqlite3) UpdateAccountInfo(access_token string, account *models.Account) (*models.Account, error) {
+	u, err := s.client.Account.
+		Query().
+		Where(account_lib.AccessToken(access_token)).
+		Only(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+	t := u.Update()
+	if account.AuthorName != "" {
+		t.SetAuthorName(account.AuthorName)
+	}
+	if account.AuthorUrl != "" {
+		t.SetAuthorURL(account.AuthorUrl)
+	}
+	if account.ShortName != "" {
+		t.SetShortName(account.ShortName)
+	}
+	a, err := t.Save(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return convert_account_type(a), err
 }
 
 func (s *StorageRepoSqlite3) UpdateAccountAccessToken(access_token string, new_access_token string) (*models.Account, error) {

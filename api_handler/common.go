@@ -59,5 +59,6 @@ func ReturnError(c *gin.Context, status_code int, error_msg string) {
 	resp := Response{}
 	resp.Ok = false
 	resp.Error = error_msg
+	println(error_msg)
 	c.JSON(status_code, resp)
 }

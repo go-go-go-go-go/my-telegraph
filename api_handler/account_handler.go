@@ -100,3 +100,20 @@ func RevokeAccessToken(c *gin.Context) {
 		ReturnSuccess(c, http.StatusOK, account)
 	}
 }
+
+func EditAccountInfo(c *gin.Context) {
+	var account models.Account
+	err := c.ShouldBindQuery(&account)
+	if err != nil {
+		ReturnError(c, http.StatusBadRequest, err.Error())
+	}
+
+	repo := storage_repo.GetStorageRepo(context.Background())
+	a, err := repo.UpdateAccountInfo(account.AccessToken, &account)
+
+	if err != nil {
+		ReturnError(c, http.StatusBadRequest, err.Error())
+	} else {
+		ReturnSuccess(c, http.StatusOK, a)
+	}
+}

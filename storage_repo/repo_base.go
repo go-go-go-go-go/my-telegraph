@@ -8,6 +8,7 @@ import (
 type StorageRepo interface {
 	Init(ctx context.Context) error
 	CreateAccount(account *models.Account) (*models.Account, error)
+	UpdateAccountInfo(access_token string, account *models.Account) (*models.Account, error)
 	UpdateAccountAccessToken(access_token string, new_access_token string) (*models.Account, error)
 	GetAccountInfo(access_token string, fields []string) (*models.Account, error)
 	CreatePage(page *models.Page) (*models.Page, error)

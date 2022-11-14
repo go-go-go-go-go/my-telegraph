@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"regexp"
+	"telegraph/config"
 	"telegraph/models"
 	"telegraph/storage_repo"
 	"time"
@@ -14,8 +15,8 @@ import (
 
 type Response struct {
 	Ok     bool   `json:"ok"`
-	Result any    `json:"result"`
-	Error  string `json:"error"`
+	Result any    `json:"result,omitempty"`
+	Error  string `json:"error,omitempty"`
 }
 
 func GenerateAccessToken() string {
@@ -31,6 +32,10 @@ func GeneratePagePath(title string) string {
 	path := fmt.Sprintf("%s-%s-%d", f_title,
 		time.Now().Format("2006-01-02"), time.Now().Unix())
 	return path
+}
+
+func GetPageUrl(path string) string {
+	return fmt.Sprintf("http://%s:%d/getPage/%s", config.HOST, config.PORT, path)
 }
 
 func ValidateAccessToken(token string) (*models.Account, error) {

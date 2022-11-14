@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"telegraph/config"
 	"telegraph/models"
 	"telegraph/storage_repo"
 
@@ -50,6 +49,8 @@ func createPage(page *models.Page) (*models.Page, error) {
 		if !return_content {
 			p.Content = ""
 		}
+		p.CanEdit = true
+		p.Url = GetPageUrl(p.Path)
 		return p, nil
 	}
 }
@@ -82,10 +83,11 @@ func fetch_page(path string, return_content bool) (*models.Page, error) {
 	if err != nil {
 		return nil, err
 	} else {
-		page.Url = fmt.Sprintf("http://%s:%d/getPage/%s", config.HOST, config.PORT, path)
+		page.Url = GetPageUrl(page.Path)
 		if !return_content {
 			page.Content = ""
 		}
+		page.CanEdit = false
 		return page, nil
 	}
 }
@@ -139,6 +141,8 @@ func editPage(page *models.Page) (*models.Page, error) {
 		if !return_content {
 			page.Content = ""
 		}
+		page.CanEdit = true
+		page.Url = GetPageUrl(page.Path)
 		return page, nil
 	}
 }
@@ -189,6 +193,10 @@ func GetPageList(c *gin.Context) {
 		msg := fmt.Sprintf("Failed to list pages for account: %d", account.Id)
 		ReturnError(c, http.StatusBadRequest, msg)
 		return
+	}
+	for i := 0; i < page_list.Count; i++ {
+		page_list.Pages[i].CanEdit = true
+		page_list.Pages[i].Url = GetPageUrl(page_list.Pages[i].Path)
 	}
 	ReturnSuccess(c, http.StatusOK, page_list)
 }

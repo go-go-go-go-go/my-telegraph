@@ -25,5 +25,7 @@ func RegisterApis(r *gin.Engine) *gin.Engine {
 	r.POST("/getPage/:path", api_handler.GetPage)
 	r.GET("/editPage/:path", api_handler.EditPage)
 	r.POST("/editPage/:path", api_handler.EditPage)
+	r.GET("/getPageList", api_handler.GetPageList)
+	r.POST("/getPageList", api_handler.GetPageList)
 	return r
 }

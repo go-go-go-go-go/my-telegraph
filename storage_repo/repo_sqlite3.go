@@ -62,7 +62,7 @@ func convert_page_type(u *ent.Page) *models.Page {
 	return page
 }
 
-func (s *StorageRepoSqlite3) CreateAccount(account *models.Account) error {
+func (s *StorageRepoSqlite3) CreateAccount(account *models.Account) (*models.Account, error) {
 	u, err := s.client.Account.
 		Create().
 		SetShortName(account.ShortName).
@@ -73,10 +73,10 @@ func (s *StorageRepoSqlite3) CreateAccount(account *models.Account) error {
 		Save(s.ctx)
 	if err != nil {
 		log.Println(err)
-		return err
+		return nil, err
 	}
 	log.Println("user was created: ", u)
-	return nil
+	return convert_account_type(u), nil
 }
 
 func (s *StorageRepoSqlite3) UpdateAccountAccessToken(access_token string, new_access_token string) (*models.Account, error) {
@@ -113,8 +113,8 @@ func (s *StorageRepoSqlite3) GetAccountInfo(access_token string, fields []string
 	return account, nil
 }
 
-func (s *StorageRepoSqlite3) CreatePage(page *models.Page) error {
-	u, err := s.client.Page.
+func (s *StorageRepoSqlite3) CreatePage(page *models.Page) (*models.Page, error) {
+	p, err := s.client.Page.
 		Create().
 		SetAccountID(page.AccountId).
 		SetTitle(page.Title).
@@ -127,10 +127,10 @@ func (s *StorageRepoSqlite3) CreatePage(page *models.Page) error {
 		Save(s.ctx)
 	if err != nil {
 		log.Println(err)
-		return err
+		return nil, err
 	}
-	log.Println("page was created: ", u)
-	return nil
+	log.Println("page was created: ", p)
+	return convert_page_type(p), nil
 }
 
 func (s *StorageRepoSqlite3) GetPage(path string) (*models.Page, error) {
@@ -174,4 +174,37 @@ func (s *StorageRepoSqlite3) EditPage(page_id int, page *models.Page) (*models.P
 	}
 	log.Println("page was updated: ", u)
 	return convert_page_type(u), nil
+}
+
+func (s *StorageRepoSqlite3) ListPages(account_id int, limit int, offset int) (*models.PageList, error) {
+	total_count, err := s.client.Page.
+		Query().
+		Where(page_lib.AccountID(account_id)).
+		Count(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+	pages_ent, err := s.client.Page.
+		Query().
+		Where(page_lib.AccountID(account_id)).
+		Offset(offset).
+		Limit(limit).
+		All(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("pages count: %d, offset: %d, limit: %d\n",
+		len(pages_ent), offset, limit)
+	pages := make([]*models.Page, 0, len(pages_ent))
+	for i := 0; i < len(pages_ent); i++ {
+		pages = append(pages, convert_page_type(pages_ent[i]))
+	}
+	page_list := &models.PageList{
+		TotalCount: total_count,
+		Pages:      pages,
+		Offset:     offset,
+		Limit:      limit,
+		Count:      len(pages),
+	}
+	return page_list, nil
 }

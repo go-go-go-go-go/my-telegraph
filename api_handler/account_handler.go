@@ -16,34 +16,31 @@ func CreateAccount(c *gin.Context) {
 	err := c.ShouldBindQuery(&account)
 	if err == nil {
 		fmt.Println("Prepared to create new account", account)
-		resp := create(&account)
-		c.JSON(http.StatusOK, resp)
+		a, err := create_account(&account)
+		if err == nil {
+			ReturnSuccess(c, http.StatusOK, a)
+		} else {
+			ReturnError(c, http.StatusBadRequest, err.Error())
+		}
+
 		return
 	} else {
 		msg := fmt.Sprintf("Failed to parse query: %s", err)
-		fmt.Println(msg)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": msg,
-		})
+		ReturnError(c, http.StatusBadRequest, msg)
 		return
 	}
 }
 
-func create(account *models.Account) *Response {
+func create_account(account *models.Account) (*models.Account, error) {
 	account.AccessToken = GenerateAccessToken()
-
 	repo := storage_repo.GetStorageRepo(context.Background())
-	err := repo.CreateAccount(account)
+	a, err := repo.CreateAccount(account)
 
-	resp := Response{}
 	if err != nil {
-		resp.Ok = false
-		resp.Error = fmt.Sprint(err)
+		return nil, err
 	} else {
-		resp.Ok = true
-		resp.Result = account
+		return a, nil
 	}
-	return &resp
 }
 
 func GetAccountInfo(c *gin.Context) {
@@ -51,10 +48,7 @@ func GetAccountInfo(c *gin.Context) {
 	fields := c.DefaultQuery("fields", "")
 	if access_token == "" {
 		msg := "access_token is required"
-		fmt.Println(msg)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": msg,
-		})
+		ReturnError(c, http.StatusBadRequest, msg)
 		return
 	}
 	s := make([]string, 0)
@@ -64,38 +58,35 @@ func GetAccountInfo(c *gin.Context) {
 			s = append(s, strings.Trim(t[i], " \"'"))
 		}
 	}
-	resp := fetch(access_token, s)
-	if resp.Ok {
-		c.JSON(http.StatusOK, resp)
+	a, err := fetch_account_info(access_token, s)
+	if err == nil {
+		ReturnSuccess(c, http.StatusOK, a)
 	} else {
-		c.JSON(http.StatusBadRequest, resp)
+		ReturnError(c, http.StatusBadRequest, err.Error())
 	}
 }
 
-func fetch(access_token string, fields []string) *Response {
+func fetch_account_info(access_token string, fields []string) (*models.Account, error) {
 
 	repo := storage_repo.GetStorageRepo(context.Background())
 	account, err := repo.GetAccountInfo(access_token, fields)
 
-	resp := Response{}
 	if err != nil {
-		resp.Ok = false
-		resp.Error = fmt.Sprint(err)
-	} else {
-		resp.Ok = true
-		resp.Result = account
+		return nil, err
 	}
-	return &resp
+	page_count, err := GetPageCount(access_token)
+	if err != nil {
+		return nil, err
+	}
+	account.PageCount = page_count
+	return account, nil
 }
 
 func RevokeAccessToken(c *gin.Context) {
 	access_token := c.Query("access_token")
 	if access_token == "" {
 		msg := "access_token is required"
-		fmt.Println(msg)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": msg,
-		})
+		ReturnError(c, http.StatusBadRequest, msg)
 		return
 	}
 	new_access_token := GenerateAccessToken()
@@ -103,13 +94,9 @@ func RevokeAccessToken(c *gin.Context) {
 	repo := storage_repo.GetStorageRepo(context.Background())
 	account, err := repo.UpdateAccountAccessToken(access_token, new_access_token)
 
-	resp := Response{}
 	if err != nil {
-		resp.Ok = false
-		resp.Error = fmt.Sprint(err)
+		ReturnError(c, http.StatusBadRequest, err.Error())
 	} else {
-		resp.Ok = true
-		resp.Result = account
+		ReturnSuccess(c, http.StatusOK, account)
 	}
-	c.JSON(http.StatusOK, resp)
 }

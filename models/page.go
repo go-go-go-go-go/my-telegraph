@@ -16,3 +16,11 @@ type Page struct {
 	Views         int    `form:"views" json:"views"`
 	CanEdit       bool   `form:"can_edit" json:"can_edit"`
 }
+
+type PageList struct {
+	TotalCount int     `json:"total_count"`
+	Pages      []*Page `json:"pages"`
+	Offset     int     `json:"offset"`
+	Limit      int     `json:"limit"`
+	Count      int     `json:"count"`
+}

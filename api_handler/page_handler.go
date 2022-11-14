@@ -2,8 +2,10 @@ package api_handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"telegraph/config"
 	"telegraph/models"
 	"telegraph/storage_repo"
@@ -16,49 +18,40 @@ func CreatePage(c *gin.Context) {
 	err := c.ShouldBindQuery(&page)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to parse query: %s", err)
-		fmt.Println(msg)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": msg,
-		})
+		ReturnError(c, http.StatusBadRequest, msg)
 		return
 	}
 	account, err := ValidateAccessToken(page.AccessToken)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to validate access token: %s", err)
-		fmt.Println(msg)
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": msg,
-		})
+		ReturnError(c, http.StatusForbidden, msg)
 		return
 	}
 	println(account)
 	page.AccountId = account.Id
 	fmt.Println("Prepared to create new page", page)
-	resp := createPage(&page)
-	if resp.Ok {
-		c.JSON(http.StatusOK, resp)
+	p, err := createPage(&page)
+	if err == nil {
+		ReturnSuccess(c, http.StatusOK, p)
 	} else {
-		c.JSON(http.StatusBadRequest, resp)
+		ReturnError(c, http.StatusBadRequest, err.Error())
 	}
 }
 
-func createPage(page *models.Page) *Response {
+func createPage(page *models.Page) (*models.Page, error) {
+	return_content := page.ReturnContent
 	page.Path = GeneratePagePath(page.Title)
 	repo := storage_repo.GetStorageRepo(context.Background())
-	err := repo.CreatePage(page)
+	p, err := repo.CreatePage(page)
 
-	resp := Response{}
 	if err != nil {
-		resp.Ok = false
-		resp.Error = fmt.Sprint(err)
+		return nil, err
 	} else {
-		resp.Ok = true
-		if !page.ReturnContent {
-			page.Content = ""
+		if !return_content {
+			p.Content = ""
 		}
-		resp.Result = page
+		return p, nil
 	}
-	return &resp
 }
 
 func GetPage(c *gin.Context) {
@@ -71,37 +64,30 @@ func GetPage(c *gin.Context) {
 		return_content = false
 	} else {
 		msg := "access_token is required"
-		fmt.Println(msg)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": msg,
-		})
+		ReturnError(c, http.StatusBadRequest, msg)
 		return
 	}
-	resp := fetch_page(path, return_content)
-	if resp.Ok {
-		c.JSON(http.StatusOK, resp)
+	p, err := fetch_page(path, return_content)
+	if err == nil {
+		ReturnSuccess(c, http.StatusOK, p)
 	} else {
-		c.JSON(http.StatusBadRequest, resp)
+		ReturnError(c, http.StatusBadRequest, err.Error())
 	}
 }
 
-func fetch_page(path string, return_content bool) *Response {
+func fetch_page(path string, return_content bool) (*models.Page, error) {
 	repo := storage_repo.GetStorageRepo(context.Background())
 	page, err := repo.GetPage(path)
 
-	resp := Response{}
 	if err != nil {
-		resp.Ok = false
-		resp.Error = fmt.Sprint(err)
+		return nil, err
 	} else {
-		resp.Ok = true
 		page.Url = fmt.Sprintf("http://%s:%d/getPage/%s", config.HOST, config.PORT, path)
 		if !return_content {
 			page.Content = ""
 		}
-		resp.Result = page
+		return page, nil
 	}
-	return &resp
 }
 
 func EditPage(c *gin.Context) {
@@ -110,19 +96,13 @@ func EditPage(c *gin.Context) {
 	err := c.ShouldBindQuery(&page)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to parse query: %s", err)
-		fmt.Println(msg)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": msg,
-		})
+		ReturnError(c, http.StatusBadRequest, msg)
 		return
 	}
 	account, err := ValidateAccessToken(page.AccessToken)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to validate access token: %s", err)
-		fmt.Println(msg)
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": msg,
-		})
+		ReturnError(c, http.StatusForbidden, msg)
 		return
 	}
 	// println(account)
@@ -130,44 +110,85 @@ func EditPage(c *gin.Context) {
 	current_page, err := repo.GetPage(path)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to get page by path: %s", path)
-		fmt.Println(msg)
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": msg,
-		})
+		ReturnError(c, http.StatusNotFound, msg)
 		return
 	}
 	if current_page.AccountId != account.Id {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": "Access token is wrong",
-		})
+		ReturnError(c, http.StatusForbidden, "Access token is wrong")
 		return
 	}
 	page.Path = path
 	page.Id = current_page.Id
 	fmt.Println("Prepared to update page", page)
-	resp := editPage(&page)
-	if resp.Ok {
-		c.JSON(http.StatusOK, resp)
+	p, err := editPage(&page)
+	if err == nil {
+		ReturnSuccess(c, http.StatusOK, p)
 	} else {
-		c.JSON(http.StatusBadRequest, resp)
+		ReturnError(c, http.StatusBadRequest, err.Error())
 	}
 }
 
-func editPage(page *models.Page) *Response {
+func editPage(page *models.Page) (*models.Page, error) {
 	return_content := page.ReturnContent
 	page.Path = GeneratePagePath(page.Title)
 	repo := storage_repo.GetStorageRepo(context.Background())
 	page, err := repo.EditPage(page.Id, page)
-	resp := Response{}
 	if err != nil {
-		resp.Ok = false
-		resp.Error = fmt.Sprint(err)
+		return nil, err
 	} else {
-		resp.Ok = true
 		if !return_content {
 			page.Content = ""
 		}
-		resp.Result = page
+		return page, nil
 	}
-	return &resp
+}
+
+func GetPageCount(access_token string) (int, error) {
+	account, err := ValidateAccessToken(access_token)
+	if err != nil {
+		msg := fmt.Sprintf("Failed to validate access token: %s", err)
+		fmt.Println(msg)
+		return -1, errors.New(msg)
+	}
+	repo := storage_repo.GetStorageRepo(context.Background())
+	page_list, err := repo.ListPages(account.Id, 1, 0)
+	if err != nil {
+		msg := fmt.Sprintf("Failed to list pages for account: %d", account.Id)
+		fmt.Println(msg)
+		return -1, errors.New(msg)
+	}
+	return page_list.TotalCount, nil
+}
+
+func GetPageList(c *gin.Context) {
+	access_token := c.Query("access_token")
+	t := c.DefaultQuery("offset", "0")
+	offset, err := strconv.Atoi(t)
+	if err != nil {
+		msg := fmt.Sprintf("Wrong offset: %s", t)
+		ReturnError(c, http.StatusBadRequest, msg)
+		return
+	}
+	t = c.DefaultQuery("limit", "2")
+	limit, err := strconv.Atoi(t)
+	if err != nil {
+		msg := fmt.Sprintf("Wrong limit: %s", t)
+		ReturnError(c, http.StatusBadRequest, msg)
+		return
+	}
+
+	account, err := ValidateAccessToken(access_token)
+	if err != nil {
+		msg := fmt.Sprintf("Failed to validate access token: %s", err)
+		ReturnError(c, http.StatusForbidden, msg)
+		return
+	}
+	repo := storage_repo.GetStorageRepo(context.Background())
+	page_list, err := repo.ListPages(account.Id, limit, offset)
+	if err != nil {
+		msg := fmt.Sprintf("Failed to list pages for account: %d", account.Id)
+		ReturnError(c, http.StatusBadRequest, msg)
+		return
+	}
+	ReturnSuccess(c, http.StatusOK, page_list)
 }

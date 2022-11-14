@@ -8,6 +8,8 @@ import (
 	"telegraph/models"
 	"telegraph/storage_repo"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Response struct {
@@ -39,4 +41,18 @@ func ValidateAccessToken(token string) (*models.Account, error) {
 	} else {
 		return account, nil
 	}
+}
+
+func ReturnSuccess(c *gin.Context, status_code int, result any) {
+	resp := Response{}
+	resp.Ok = true
+	resp.Result = result
+	c.JSON(status_code, resp)
+}
+
+func ReturnError(c *gin.Context, status_code int, error_msg string) {
+	resp := Response{}
+	resp.Ok = false
+	resp.Error = error_msg
+	c.JSON(status_code, resp)
 }

@@ -15,4 +15,5 @@ type StorageRepo interface {
 	GetPage(path string) (*models.Page, error)
 	EditPage(page_id int, page *models.Page) (*models.Page, error)
 	ListPages(account_id int, limit int, offset int) (*models.PageList, error)
+	GetPageView(path string, year int, month int, day int, hour int) (int, error)
 }

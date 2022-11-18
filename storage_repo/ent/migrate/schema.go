@@ -57,10 +57,40 @@ var (
 			},
 		},
 	}
+	// PageViewsColumns holds the columns for the "page_views" table.
+	PageViewsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "page_id", Type: field.TypeInt},
+		{Name: "path", Type: field.TypeString},
+		{Name: "year", Type: field.TypeInt},
+		{Name: "month", Type: field.TypeInt},
+		{Name: "day", Type: field.TypeInt},
+		{Name: "hour", Type: field.TypeInt},
+		{Name: "views", Type: field.TypeInt, Default: 0},
+	}
+	// PageViewsTable holds the schema information for the "page_views" table.
+	PageViewsTable = &schema.Table{
+		Name:       "page_views",
+		Columns:    PageViewsColumns,
+		PrimaryKey: []*schema.Column{PageViewsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "pageview_page_id",
+				Unique:  false,
+				Columns: []*schema.Column{PageViewsColumns[1]},
+			},
+			{
+				Name:    "pageview_path",
+				Unique:  false,
+				Columns: []*schema.Column{PageViewsColumns[2]},
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountsTable,
 		PagesTable,
+		PageViewsTable,
 	}
 )
 

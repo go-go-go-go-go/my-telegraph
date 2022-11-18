@@ -16,6 +16,8 @@ type Tx struct {
 	Account *AccountClient
 	// Page is the client for interacting with the Page builders.
 	Page *PageClient
+	// PageView is the client for interacting with the PageView builders.
+	PageView *PageViewClient
 
 	// lazily loaded.
 	client     *Client
@@ -149,6 +151,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Account = NewAccountClient(tx.config)
 	tx.Page = NewPageClient(tx.config)
+	tx.PageView = NewPageViewClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

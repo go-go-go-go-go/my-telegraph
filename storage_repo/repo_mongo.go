@@ -31,40 +31,45 @@ func (s *StorageRepoMongo) Init(ctx context.Context) error {
 
 func (s *StorageRepoMongo) CreateAccount(account *models.Account) (*models.Account, error) {
 	// TODO
-	return nil, errors.New("Not implemented")
+	return nil, errors.New("not implemented")
 }
 
 func (s *StorageRepoMongo) UpdateAccountInfo(access_token string, account *models.Account) (*models.Account, error) {
 	// TODO
-	return nil, errors.New("Not implemented")
+	return nil, errors.New("not implemented")
 }
 
 func (s *StorageRepoMongo) UpdateAccountAccessToken(access_token string, new_access_token string) (*models.Account, error) {
 	// TODO
-	return nil, errors.New("Not implemented")
+	return nil, errors.New("not implemented")
 }
 
 func (s *StorageRepoMongo) GetAccountInfo(access_token string, fields []string) (*models.Account, error) {
 	// TODO
-	return nil, errors.New("Not implemented")
+	return nil, errors.New("not implemented")
 }
 
 func (s *StorageRepoMongo) CreatePage(page *models.Page) (*models.Page, error) {
 	// TODO
-	return nil, errors.New("Not implemented")
+	return nil, errors.New("not implemented")
 }
 
 func (s *StorageRepoMongo) GetPage(path string) (*models.Page, error) {
 	// TODO
-	return nil, errors.New("Not implemented")
+	return nil, errors.New("not implemented")
 }
 
 func (s *StorageRepoMongo) EditPage(page_id int, page *models.Page) (*models.Page, error) {
 	// TODO
-	return nil, errors.New("Not implemented")
+	return nil, errors.New("not implemented")
 }
 
 func (s *StorageRepoMongo) ListPages(account_id int, limit int, offset int) (*models.PageList, error) {
 	// TODO
-	return nil, errors.New("Not implemented")
+	return nil, errors.New("not implemented")
+}
+
+func (s *StorageRepoMongo) GetPageView(path string, year int, month int, day int, hour int) (int, error) {
+	// TODO
+	return -1, errors.New("not implemented")
 }

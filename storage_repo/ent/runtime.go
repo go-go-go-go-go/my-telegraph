@@ -5,6 +5,7 @@ package ent
 import (
 	"telegraph/storage_repo/ent/account"
 	"telegraph/storage_repo/ent/page"
+	"telegraph/storage_repo/ent/pageview"
 	"telegraph/storage_repo/ent/schema"
 )
 
@@ -72,4 +73,88 @@ func init() {
 	pageDescViews := pageFields[9].Descriptor()
 	// page.DefaultViews holds the default value on creation for the views field.
 	page.DefaultViews = pageDescViews.Default.(int)
+	pageviewFields := schema.PageView{}.Fields()
+	_ = pageviewFields
+	// pageviewDescPath is the schema descriptor for path field.
+	pageviewDescPath := pageviewFields[1].Descriptor()
+	// pageview.PathValidator is a validator for the "path" field. It is called by the builders before save.
+	pageview.PathValidator = pageviewDescPath.Validators[0].(func(string) error)
+	// pageviewDescYear is the schema descriptor for year field.
+	pageviewDescYear := pageviewFields[2].Descriptor()
+	// pageview.YearValidator is a validator for the "year" field. It is called by the builders before save.
+	pageview.YearValidator = func() func(int) error {
+		validators := pageviewDescYear.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(year int) error {
+			for _, fn := range fns {
+				if err := fn(year); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// pageviewDescMonth is the schema descriptor for month field.
+	pageviewDescMonth := pageviewFields[3].Descriptor()
+	// pageview.MonthValidator is a validator for the "month" field. It is called by the builders before save.
+	pageview.MonthValidator = func() func(int) error {
+		validators := pageviewDescMonth.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(month int) error {
+			for _, fn := range fns {
+				if err := fn(month); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// pageviewDescDay is the schema descriptor for day field.
+	pageviewDescDay := pageviewFields[4].Descriptor()
+	// pageview.DayValidator is a validator for the "day" field. It is called by the builders before save.
+	pageview.DayValidator = func() func(int) error {
+		validators := pageviewDescDay.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(day int) error {
+			for _, fn := range fns {
+				if err := fn(day); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// pageviewDescHour is the schema descriptor for hour field.
+	pageviewDescHour := pageviewFields[5].Descriptor()
+	// pageview.HourValidator is a validator for the "hour" field. It is called by the builders before save.
+	pageview.HourValidator = func() func(int) error {
+		validators := pageviewDescHour.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(hour int) error {
+			for _, fn := range fns {
+				if err := fn(hour); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// pageviewDescViews is the schema descriptor for views field.
+	pageviewDescViews := pageviewFields[6].Descriptor()
+	// pageview.DefaultViews holds the default value on creation for the views field.
+	pageview.DefaultViews = pageviewDescViews.Default.(int)
+	// pageview.ViewsValidator is a validator for the "views" field. It is called by the builders before save.
+	pageview.ViewsValidator = pageviewDescViews.Validators[0].(func(int) error)
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"telegraph/storage_repo/ent/account"
 	"telegraph/storage_repo/ent/page"
+	"telegraph/storage_repo/ent/pageview"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -32,8 +33,9 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		account.Table: account.ValidColumn,
-		page.Table:    page.ValidColumn,
+		account.Table:  account.ValidColumn,
+		page.Table:     page.ValidColumn,
+		pageview.Table: pageview.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

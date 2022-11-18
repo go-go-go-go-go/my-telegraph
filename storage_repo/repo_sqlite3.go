@@ -9,6 +9,8 @@ import (
 	"telegraph/storage_repo/ent"
 	account_lib "telegraph/storage_repo/ent/account"
 	page_lib "telegraph/storage_repo/ent/page"
+	pageview_lib "telegraph/storage_repo/ent/pageview"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -159,6 +161,72 @@ func (s *StorageRepoSqlite3) CreatePage(page *models.Page) (*models.Page, error)
 	return convert_page_type(p), nil
 }
 
+func (s *StorageRepoSqlite3) LogPageView(page *models.Page) error {
+	now := time.Now().UTC()
+	pv, err := s.client.PageView.
+		Query().
+		Where(pageview_lib.Path(page.Path)).
+		Where(pageview_lib.Year(now.Year())).
+		Where(pageview_lib.Month(int(now.Month()))).
+		Where(pageview_lib.Day(now.Day())).
+		Where(pageview_lib.Hour(now.Hour())).
+		Only(s.ctx)
+	fmt.Println("xxxx:", pv, err)
+	if err == nil { // found => update
+		pv, err = pv.Update().AddViews(1).Save(s.ctx)
+		if err != nil {
+			log.Println(err)
+			return err
+		} else {
+			log.Println("page_view was updated: ", pv)
+			return nil
+		}
+	} else { // not found => create
+		pv, err := s.client.PageView.
+			Create().
+			SetPath(page.Path).
+			SetPageID(page.Id).
+			SetYear(now.Year()).
+			SetMonth(int(now.Month())).
+			SetDay(now.Day()).
+			SetHour(now.Hour()).
+			SetViews(0).
+			Save(s.ctx)
+		if err != nil {
+			log.Println(err)
+			return err
+		} else {
+			log.Println("page_view was inserted: ", pv)
+			return nil
+		}
+	}
+}
+
+func (s *StorageRepoSqlite3) GetPageView(path string, year int, month int, day int, hour int) (int, error) {
+	pv_query := s.client.PageView.
+		Query().
+		Where(pageview_lib.Path(path))
+	if year != -1 {
+		pv_query = pv_query.Where(pageview_lib.Year(year))
+	}
+	if month != -1 {
+		pv_query = pv_query.Where(pageview_lib.Month(month))
+	}
+	if day != -1 {
+		pv_query = pv_query.Where(pageview_lib.Day(day))
+	}
+	if hour != -1 {
+		pv_query = pv_query.Where(pageview_lib.Hour(hour))
+	}
+	pv_count, err := pv_query.Aggregate(ent.Sum(pageview_lib.FieldViews)).Int(s.ctx)
+	if err != nil {
+		log.Println(err)
+		return 0, nil
+	} else {
+		return pv_count, nil
+	}
+}
+
 func (s *StorageRepoSqlite3) GetPage(path string) (*models.Page, error) {
 	p, err := s.client.Page.
 		Query().
@@ -169,6 +237,7 @@ func (s *StorageRepoSqlite3) GetPage(path string) (*models.Page, error) {
 	}
 	log.Println("page returned: ", p)
 	page := convert_page_type(p)
+	_ = s.LogPageView(page)
 	return page, nil
 }
 

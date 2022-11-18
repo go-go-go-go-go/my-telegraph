@@ -9,6 +9,7 @@ import (
 	"sync"
 	"telegraph/storage_repo/ent/account"
 	"telegraph/storage_repo/ent/page"
+	"telegraph/storage_repo/ent/pageview"
 	"telegraph/storage_repo/ent/predicate"
 
 	"entgo.io/ent"
@@ -23,8 +24,9 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAccount = "Account"
-	TypePage    = "Page"
+	TypeAccount  = "Account"
+	TypePage     = "Page"
+	TypePageView = "PageView"
 )
 
 // AccountMutation represents an operation that mutates the Account nodes in the graph.
@@ -1418,4 +1420,840 @@ func (m *PageMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *PageMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Page edge %s", name)
+}
+
+// PageViewMutation represents an operation that mutates the PageView nodes in the graph.
+type PageViewMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	page_id       *int
+	addpage_id    *int
+	_path         *string
+	year          *int
+	addyear       *int
+	month         *int
+	addmonth      *int
+	day           *int
+	addday        *int
+	hour          *int
+	addhour       *int
+	views         *int
+	addviews      *int
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*PageView, error)
+	predicates    []predicate.PageView
+}
+
+var _ ent.Mutation = (*PageViewMutation)(nil)
+
+// pageviewOption allows management of the mutation configuration using functional options.
+type pageviewOption func(*PageViewMutation)
+
+// newPageViewMutation creates new mutation for the PageView entity.
+func newPageViewMutation(c config, op Op, opts ...pageviewOption) *PageViewMutation {
+	m := &PageViewMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePageView,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPageViewID sets the ID field of the mutation.
+func withPageViewID(id int) pageviewOption {
+	return func(m *PageViewMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PageView
+		)
+		m.oldValue = func(ctx context.Context) (*PageView, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PageView.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPageView sets the old PageView of the mutation.
+func withPageView(node *PageView) pageviewOption {
+	return func(m *PageViewMutation) {
+		m.oldValue = func(context.Context) (*PageView, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PageViewMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PageViewMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PageViewMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PageViewMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PageView.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPageID sets the "page_id" field.
+func (m *PageViewMutation) SetPageID(i int) {
+	m.page_id = &i
+	m.addpage_id = nil
+}
+
+// PageID returns the value of the "page_id" field in the mutation.
+func (m *PageViewMutation) PageID() (r int, exists bool) {
+	v := m.page_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPageID returns the old "page_id" field's value of the PageView entity.
+// If the PageView object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PageViewMutation) OldPageID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPageID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPageID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPageID: %w", err)
+	}
+	return oldValue.PageID, nil
+}
+
+// AddPageID adds i to the "page_id" field.
+func (m *PageViewMutation) AddPageID(i int) {
+	if m.addpage_id != nil {
+		*m.addpage_id += i
+	} else {
+		m.addpage_id = &i
+	}
+}
+
+// AddedPageID returns the value that was added to the "page_id" field in this mutation.
+func (m *PageViewMutation) AddedPageID() (r int, exists bool) {
+	v := m.addpage_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPageID resets all changes to the "page_id" field.
+func (m *PageViewMutation) ResetPageID() {
+	m.page_id = nil
+	m.addpage_id = nil
+}
+
+// SetPath sets the "path" field.
+func (m *PageViewMutation) SetPath(s string) {
+	m._path = &s
+}
+
+// Path returns the value of the "path" field in the mutation.
+func (m *PageViewMutation) Path() (r string, exists bool) {
+	v := m._path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPath returns the old "path" field's value of the PageView entity.
+// If the PageView object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PageViewMutation) OldPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPath: %w", err)
+	}
+	return oldValue.Path, nil
+}
+
+// ResetPath resets all changes to the "path" field.
+func (m *PageViewMutation) ResetPath() {
+	m._path = nil
+}
+
+// SetYear sets the "year" field.
+func (m *PageViewMutation) SetYear(i int) {
+	m.year = &i
+	m.addyear = nil
+}
+
+// Year returns the value of the "year" field in the mutation.
+func (m *PageViewMutation) Year() (r int, exists bool) {
+	v := m.year
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldYear returns the old "year" field's value of the PageView entity.
+// If the PageView object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PageViewMutation) OldYear(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldYear is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldYear requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldYear: %w", err)
+	}
+	return oldValue.Year, nil
+}
+
+// AddYear adds i to the "year" field.
+func (m *PageViewMutation) AddYear(i int) {
+	if m.addyear != nil {
+		*m.addyear += i
+	} else {
+		m.addyear = &i
+	}
+}
+
+// AddedYear returns the value that was added to the "year" field in this mutation.
+func (m *PageViewMutation) AddedYear() (r int, exists bool) {
+	v := m.addyear
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetYear resets all changes to the "year" field.
+func (m *PageViewMutation) ResetYear() {
+	m.year = nil
+	m.addyear = nil
+}
+
+// SetMonth sets the "month" field.
+func (m *PageViewMutation) SetMonth(i int) {
+	m.month = &i
+	m.addmonth = nil
+}
+
+// Month returns the value of the "month" field in the mutation.
+func (m *PageViewMutation) Month() (r int, exists bool) {
+	v := m.month
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMonth returns the old "month" field's value of the PageView entity.
+// If the PageView object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PageViewMutation) OldMonth(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMonth is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMonth requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMonth: %w", err)
+	}
+	return oldValue.Month, nil
+}
+
+// AddMonth adds i to the "month" field.
+func (m *PageViewMutation) AddMonth(i int) {
+	if m.addmonth != nil {
+		*m.addmonth += i
+	} else {
+		m.addmonth = &i
+	}
+}
+
+// AddedMonth returns the value that was added to the "month" field in this mutation.
+func (m *PageViewMutation) AddedMonth() (r int, exists bool) {
+	v := m.addmonth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMonth resets all changes to the "month" field.
+func (m *PageViewMutation) ResetMonth() {
+	m.month = nil
+	m.addmonth = nil
+}
+
+// SetDay sets the "day" field.
+func (m *PageViewMutation) SetDay(i int) {
+	m.day = &i
+	m.addday = nil
+}
+
+// Day returns the value of the "day" field in the mutation.
+func (m *PageViewMutation) Day() (r int, exists bool) {
+	v := m.day
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDay returns the old "day" field's value of the PageView entity.
+// If the PageView object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PageViewMutation) OldDay(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDay is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDay requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDay: %w", err)
+	}
+	return oldValue.Day, nil
+}
+
+// AddDay adds i to the "day" field.
+func (m *PageViewMutation) AddDay(i int) {
+	if m.addday != nil {
+		*m.addday += i
+	} else {
+		m.addday = &i
+	}
+}
+
+// AddedDay returns the value that was added to the "day" field in this mutation.
+func (m *PageViewMutation) AddedDay() (r int, exists bool) {
+	v := m.addday
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDay resets all changes to the "day" field.
+func (m *PageViewMutation) ResetDay() {
+	m.day = nil
+	m.addday = nil
+}
+
+// SetHour sets the "hour" field.
+func (m *PageViewMutation) SetHour(i int) {
+	m.hour = &i
+	m.addhour = nil
+}
+
+// Hour returns the value of the "hour" field in the mutation.
+func (m *PageViewMutation) Hour() (r int, exists bool) {
+	v := m.hour
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHour returns the old "hour" field's value of the PageView entity.
+// If the PageView object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PageViewMutation) OldHour(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHour is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHour requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHour: %w", err)
+	}
+	return oldValue.Hour, nil
+}
+
+// AddHour adds i to the "hour" field.
+func (m *PageViewMutation) AddHour(i int) {
+	if m.addhour != nil {
+		*m.addhour += i
+	} else {
+		m.addhour = &i
+	}
+}
+
+// AddedHour returns the value that was added to the "hour" field in this mutation.
+func (m *PageViewMutation) AddedHour() (r int, exists bool) {
+	v := m.addhour
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHour resets all changes to the "hour" field.
+func (m *PageViewMutation) ResetHour() {
+	m.hour = nil
+	m.addhour = nil
+}
+
+// SetViews sets the "views" field.
+func (m *PageViewMutation) SetViews(i int) {
+	m.views = &i
+	m.addviews = nil
+}
+
+// Views returns the value of the "views" field in the mutation.
+func (m *PageViewMutation) Views() (r int, exists bool) {
+	v := m.views
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldViews returns the old "views" field's value of the PageView entity.
+// If the PageView object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PageViewMutation) OldViews(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldViews is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldViews requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldViews: %w", err)
+	}
+	return oldValue.Views, nil
+}
+
+// AddViews adds i to the "views" field.
+func (m *PageViewMutation) AddViews(i int) {
+	if m.addviews != nil {
+		*m.addviews += i
+	} else {
+		m.addviews = &i
+	}
+}
+
+// AddedViews returns the value that was added to the "views" field in this mutation.
+func (m *PageViewMutation) AddedViews() (r int, exists bool) {
+	v := m.addviews
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetViews resets all changes to the "views" field.
+func (m *PageViewMutation) ResetViews() {
+	m.views = nil
+	m.addviews = nil
+}
+
+// Where appends a list predicates to the PageViewMutation builder.
+func (m *PageViewMutation) Where(ps ...predicate.PageView) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *PageViewMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (PageView).
+func (m *PageViewMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PageViewMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.page_id != nil {
+		fields = append(fields, pageview.FieldPageID)
+	}
+	if m._path != nil {
+		fields = append(fields, pageview.FieldPath)
+	}
+	if m.year != nil {
+		fields = append(fields, pageview.FieldYear)
+	}
+	if m.month != nil {
+		fields = append(fields, pageview.FieldMonth)
+	}
+	if m.day != nil {
+		fields = append(fields, pageview.FieldDay)
+	}
+	if m.hour != nil {
+		fields = append(fields, pageview.FieldHour)
+	}
+	if m.views != nil {
+		fields = append(fields, pageview.FieldViews)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PageViewMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case pageview.FieldPageID:
+		return m.PageID()
+	case pageview.FieldPath:
+		return m.Path()
+	case pageview.FieldYear:
+		return m.Year()
+	case pageview.FieldMonth:
+		return m.Month()
+	case pageview.FieldDay:
+		return m.Day()
+	case pageview.FieldHour:
+		return m.Hour()
+	case pageview.FieldViews:
+		return m.Views()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PageViewMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case pageview.FieldPageID:
+		return m.OldPageID(ctx)
+	case pageview.FieldPath:
+		return m.OldPath(ctx)
+	case pageview.FieldYear:
+		return m.OldYear(ctx)
+	case pageview.FieldMonth:
+		return m.OldMonth(ctx)
+	case pageview.FieldDay:
+		return m.OldDay(ctx)
+	case pageview.FieldHour:
+		return m.OldHour(ctx)
+	case pageview.FieldViews:
+		return m.OldViews(ctx)
+	}
+	return nil, fmt.Errorf("unknown PageView field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PageViewMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case pageview.FieldPageID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPageID(v)
+		return nil
+	case pageview.FieldPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPath(v)
+		return nil
+	case pageview.FieldYear:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetYear(v)
+		return nil
+	case pageview.FieldMonth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMonth(v)
+		return nil
+	case pageview.FieldDay:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDay(v)
+		return nil
+	case pageview.FieldHour:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHour(v)
+		return nil
+	case pageview.FieldViews:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetViews(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PageView field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PageViewMutation) AddedFields() []string {
+	var fields []string
+	if m.addpage_id != nil {
+		fields = append(fields, pageview.FieldPageID)
+	}
+	if m.addyear != nil {
+		fields = append(fields, pageview.FieldYear)
+	}
+	if m.addmonth != nil {
+		fields = append(fields, pageview.FieldMonth)
+	}
+	if m.addday != nil {
+		fields = append(fields, pageview.FieldDay)
+	}
+	if m.addhour != nil {
+		fields = append(fields, pageview.FieldHour)
+	}
+	if m.addviews != nil {
+		fields = append(fields, pageview.FieldViews)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PageViewMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case pageview.FieldPageID:
+		return m.AddedPageID()
+	case pageview.FieldYear:
+		return m.AddedYear()
+	case pageview.FieldMonth:
+		return m.AddedMonth()
+	case pageview.FieldDay:
+		return m.AddedDay()
+	case pageview.FieldHour:
+		return m.AddedHour()
+	case pageview.FieldViews:
+		return m.AddedViews()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PageViewMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case pageview.FieldPageID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPageID(v)
+		return nil
+	case pageview.FieldYear:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddYear(v)
+		return nil
+	case pageview.FieldMonth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMonth(v)
+		return nil
+	case pageview.FieldDay:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDay(v)
+		return nil
+	case pageview.FieldHour:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHour(v)
+		return nil
+	case pageview.FieldViews:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddViews(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PageView numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PageViewMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PageViewMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PageViewMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown PageView nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PageViewMutation) ResetField(name string) error {
+	switch name {
+	case pageview.FieldPageID:
+		m.ResetPageID()
+		return nil
+	case pageview.FieldPath:
+		m.ResetPath()
+		return nil
+	case pageview.FieldYear:
+		m.ResetYear()
+		return nil
+	case pageview.FieldMonth:
+		m.ResetMonth()
+		return nil
+	case pageview.FieldDay:
+		m.ResetDay()
+		return nil
+	case pageview.FieldHour:
+		m.ResetHour()
+		return nil
+	case pageview.FieldViews:
+		m.ResetViews()
+		return nil
+	}
+	return fmt.Errorf("unknown PageView field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PageViewMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PageViewMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PageViewMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PageViewMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PageViewMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PageViewMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PageViewMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown PageView unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PageViewMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown PageView edge %s", name)
 }

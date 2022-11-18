@@ -12,6 +12,7 @@ import (
 
 	"telegraph/storage_repo/ent/account"
 	"telegraph/storage_repo/ent/page"
+	"telegraph/storage_repo/ent/pageview"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -26,6 +27,8 @@ type Client struct {
 	Account *AccountClient
 	// Page is the client for interacting with the Page builders.
 	Page *PageClient
+	// PageView is the client for interacting with the PageView builders.
+	PageView *PageViewClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -41,6 +44,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Account = NewAccountClient(c.config)
 	c.Page = NewPageClient(c.config)
+	c.PageView = NewPageViewClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -72,10 +76,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Account: NewAccountClient(cfg),
-		Page:    NewPageClient(cfg),
+		ctx:      ctx,
+		config:   cfg,
+		Account:  NewAccountClient(cfg),
+		Page:     NewPageClient(cfg),
+		PageView: NewPageViewClient(cfg),
 	}, nil
 }
 
@@ -93,10 +98,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Account: NewAccountClient(cfg),
-		Page:    NewPageClient(cfg),
+		ctx:      ctx,
+		config:   cfg,
+		Account:  NewAccountClient(cfg),
+		Page:     NewPageClient(cfg),
+		PageView: NewPageViewClient(cfg),
 	}, nil
 }
 
@@ -127,6 +133,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.Account.Use(hooks...)
 	c.Page.Use(hooks...)
+	c.PageView.Use(hooks...)
 }
 
 // AccountClient is a client for the Account schema.
@@ -307,4 +314,94 @@ func (c *PageClient) GetX(ctx context.Context, id int) *Page {
 // Hooks returns the client hooks.
 func (c *PageClient) Hooks() []Hook {
 	return c.hooks.Page
+}
+
+// PageViewClient is a client for the PageView schema.
+type PageViewClient struct {
+	config
+}
+
+// NewPageViewClient returns a client for the PageView from the given config.
+func NewPageViewClient(c config) *PageViewClient {
+	return &PageViewClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pageview.Hooks(f(g(h())))`.
+func (c *PageViewClient) Use(hooks ...Hook) {
+	c.hooks.PageView = append(c.hooks.PageView, hooks...)
+}
+
+// Create returns a builder for creating a PageView entity.
+func (c *PageViewClient) Create() *PageViewCreate {
+	mutation := newPageViewMutation(c.config, OpCreate)
+	return &PageViewCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PageView entities.
+func (c *PageViewClient) CreateBulk(builders ...*PageViewCreate) *PageViewCreateBulk {
+	return &PageViewCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PageView.
+func (c *PageViewClient) Update() *PageViewUpdate {
+	mutation := newPageViewMutation(c.config, OpUpdate)
+	return &PageViewUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PageViewClient) UpdateOne(pv *PageView) *PageViewUpdateOne {
+	mutation := newPageViewMutation(c.config, OpUpdateOne, withPageView(pv))
+	return &PageViewUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PageViewClient) UpdateOneID(id int) *PageViewUpdateOne {
+	mutation := newPageViewMutation(c.config, OpUpdateOne, withPageViewID(id))
+	return &PageViewUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PageView.
+func (c *PageViewClient) Delete() *PageViewDelete {
+	mutation := newPageViewMutation(c.config, OpDelete)
+	return &PageViewDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PageViewClient) DeleteOne(pv *PageView) *PageViewDeleteOne {
+	return c.DeleteOneID(pv.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PageViewClient) DeleteOneID(id int) *PageViewDeleteOne {
+	builder := c.Delete().Where(pageview.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PageViewDeleteOne{builder}
+}
+
+// Query returns a query builder for PageView.
+func (c *PageViewClient) Query() *PageViewQuery {
+	return &PageViewQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a PageView entity by its id.
+func (c *PageViewClient) Get(ctx context.Context, id int) (*PageView, error) {
+	return c.Query().Where(pageview.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PageViewClient) GetX(ctx context.Context, id int) *PageView {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PageViewClient) Hooks() []Hook {
+	return c.hooks.PageView
 }

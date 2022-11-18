@@ -11,3 +11,6 @@ type Account func(*sql.Selector)
 
 // Page is the predicate function for page builders.
 type Page func(*sql.Selector)
+
+// PageView is the predicate function for pageview builders.
+type PageView func(*sql.Selector)

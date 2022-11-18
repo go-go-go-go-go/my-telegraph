@@ -83,7 +83,12 @@ func fetch_page(path string, return_content bool) (*models.Page, error) {
 	if err != nil {
 		return nil, err
 	} else {
-		page.Url = GetPageUrl(page.Path)
+		page.Url = GetPageUrl(path)
+		page_views, err := repo.GetPageView(path, -1, -1, -1, -1)
+		if err != nil {
+			page_views = 0
+		}
+		page.Views = page_views
 		if !return_content {
 			page.Content = ""
 		}
@@ -199,4 +204,24 @@ func GetPageList(c *gin.Context) {
 		page_list.Pages[i].Url = GetPageUrl(page_list.Pages[i].Path)
 	}
 	ReturnSuccess(c, http.StatusOK, page_list)
+}
+
+func GetViews(c *gin.Context) {
+	path := c.Param("path")
+	var pv_req models.PageViewRequest
+	err := c.ShouldBindQuery(&pv_req)
+	if err != nil {
+		msg := fmt.Sprintf("Failed to parse query: %s", err)
+		ReturnError(c, http.StatusBadRequest, msg)
+		return
+	}
+
+	repo := storage_repo.GetStorageRepo(context.Background())
+	pv, err := repo.GetPageView(path, pv_req.Year, pv_req.Month, pv_req.Day, pv_req.Hour)
+	if err == nil {
+		res := gin.H{"views": pv}
+		ReturnSuccess(c, http.StatusOK, res)
+	} else {
+		ReturnError(c, http.StatusBadRequest, err.Error())
+	}
 }

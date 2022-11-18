@@ -28,6 +28,7 @@ func GetConfigs() Configs {
 		if err != nil {
 			panic(err)
 		}
+		configs_inited = true
 	}
 	return configs
 }

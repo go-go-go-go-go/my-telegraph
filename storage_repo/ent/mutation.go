@@ -566,7 +566,8 @@ type PageMutation struct {
 	addaccount_id *int
 	_path         *string
 	title         *string
-	content       *string
+	content       *[]interface{}
+	appendcontent []interface{}
 	url           *string
 	description   *string
 	author_name   *string
@@ -807,12 +808,13 @@ func (m *PageMutation) ResetTitle() {
 }
 
 // SetContent sets the "content" field.
-func (m *PageMutation) SetContent(s string) {
-	m.content = &s
+func (m *PageMutation) SetContent(i []interface{}) {
+	m.content = &i
+	m.appendcontent = nil
 }
 
 // Content returns the value of the "content" field in the mutation.
-func (m *PageMutation) Content() (r string, exists bool) {
+func (m *PageMutation) Content() (r []interface{}, exists bool) {
 	v := m.content
 	if v == nil {
 		return
@@ -823,7 +825,7 @@ func (m *PageMutation) Content() (r string, exists bool) {
 // OldContent returns the old "content" field's value of the Page entity.
 // If the Page object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PageMutation) OldContent(ctx context.Context) (v string, err error) {
+func (m *PageMutation) OldContent(ctx context.Context) (v []interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldContent is only allowed on UpdateOne operations")
 	}
@@ -837,9 +839,23 @@ func (m *PageMutation) OldContent(ctx context.Context) (v string, err error) {
 	return oldValue.Content, nil
 }
 
+// AppendContent adds i to the "content" field.
+func (m *PageMutation) AppendContent(i []interface{}) {
+	m.appendcontent = append(m.appendcontent, i...)
+}
+
+// AppendedContent returns the list of values that were appended to the "content" field in this mutation.
+func (m *PageMutation) AppendedContent() ([]interface{}, bool) {
+	if len(m.appendcontent) == 0 {
+		return nil, false
+	}
+	return m.appendcontent, true
+}
+
 // ResetContent resets all changes to the "content" field.
 func (m *PageMutation) ResetContent() {
 	m.content = nil
+	m.appendcontent = nil
 }
 
 // SetURL sets the "url" field.
@@ -1216,7 +1232,7 @@ func (m *PageMutation) SetField(name string, value ent.Value) error {
 		m.SetTitle(v)
 		return nil
 	case page.FieldContent:
-		v, ok := value.(string)
+		v, ok := value.([]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

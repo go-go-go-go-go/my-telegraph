@@ -45,10 +45,6 @@ func init() {
 	pageDescTitle := pageFields[2].Descriptor()
 	// page.TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	page.TitleValidator = pageDescTitle.Validators[0].(func(string) error)
-	// pageDescContent is the schema descriptor for content field.
-	pageDescContent := pageFields[3].Descriptor()
-	// page.ContentValidator is a validator for the "content" field. It is called by the builders before save.
-	page.ContentValidator = pageDescContent.Validators[0].(func(string) error)
 	// pageDescURL is the schema descriptor for url field.
 	pageDescURL := pageFields[4].Descriptor()
 	// page.DefaultURL holds the default value on creation for the url field.

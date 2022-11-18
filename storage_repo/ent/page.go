@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"telegraph/storage_repo/ent/page"
@@ -22,7 +23,7 @@ type Page struct {
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Content holds the value of the "content" field.
-	Content string `json:"content,omitempty"`
+	Content []interface{} `json:"content,omitempty"`
 	// URL holds the value of the "url" field.
 	URL string `json:"url,omitempty"`
 	// Description holds the value of the "description" field.
@@ -42,9 +43,11 @@ func (*Page) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case page.FieldContent:
+			values[i] = new([]byte)
 		case page.FieldID, page.FieldAccountID, page.FieldViews:
 			values[i] = new(sql.NullInt64)
-		case page.FieldPath, page.FieldTitle, page.FieldContent, page.FieldURL, page.FieldDescription, page.FieldAuthorName, page.FieldAuthorURL, page.FieldImageURL:
+		case page.FieldPath, page.FieldTitle, page.FieldURL, page.FieldDescription, page.FieldAuthorName, page.FieldAuthorURL, page.FieldImageURL:
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Page", columns[i])
@@ -86,10 +89,12 @@ func (pa *Page) assignValues(columns []string, values []any) error {
 				pa.Title = value.String
 			}
 		case page.FieldContent:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field content", values[i])
-			} else if value.Valid {
-				pa.Content = value.String
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pa.Content); err != nil {
+					return fmt.Errorf("unmarshal field content: %w", err)
+				}
 			}
 		case page.FieldURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -165,7 +170,7 @@ func (pa *Page) String() string {
 	builder.WriteString(pa.Title)
 	builder.WriteString(", ")
 	builder.WriteString("content=")
-	builder.WriteString(pa.Content)
+	builder.WriteString(fmt.Sprintf("%v", pa.Content))
 	builder.WriteString(", ")
 	builder.WriteString("url=")
 	builder.WriteString(pa.URL)

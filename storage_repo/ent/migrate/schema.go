@@ -36,7 +36,7 @@ var (
 		{Name: "account_id", Type: field.TypeInt},
 		{Name: "path", Type: field.TypeString},
 		{Name: "title", Type: field.TypeString},
-		{Name: "content", Type: field.TypeString},
+		{Name: "content", Type: field.TypeJSON},
 		{Name: "url", Type: field.TypeString, Default: ""},
 		{Name: "description", Type: field.TypeString, Default: ""},
 		{Name: "author_name", Type: field.TypeString, Default: ""},

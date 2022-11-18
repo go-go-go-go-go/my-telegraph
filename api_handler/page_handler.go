@@ -13,23 +13,29 @@ import (
 )
 
 func CreatePage(c *gin.Context) {
-	var page models.Page
-	err := c.ShouldBindQuery(&page)
+	var page_req models.PageRequest
+	err := c.ShouldBindQuery(&page_req)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to parse query: %s", err)
 		ReturnError(c, http.StatusBadRequest, msg)
 		return
 	}
-	account, err := ValidateAccessToken(page.AccessToken)
+	account, err := ValidateAccessToken(page_req.AccessToken)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to validate access token: %s", err)
 		ReturnError(c, http.StatusForbidden, msg)
 		return
 	}
 	println(account)
+	page, err := models.MakePage(&page_req)
+	if err != nil {
+		msg := fmt.Sprintf("Failed to parse content: %s", err)
+		ReturnError(c, http.StatusForbidden, msg)
+		return
+	}
 	page.AccountId = account.Id
 	fmt.Println("Prepared to create new page", page)
-	p, err := createPage(&page)
+	p, err := createPage(page)
 	if err == nil {
 		ReturnSuccess(c, http.StatusOK, p)
 	} else {
@@ -47,7 +53,7 @@ func createPage(page *models.Page) (*models.Page, error) {
 		return nil, err
 	} else {
 		if !return_content {
-			p.Content = ""
+			p.Content = nil
 		}
 		p.CanEdit = true
 		p.Url = GetPageUrl(p.Path)
@@ -90,7 +96,7 @@ func fetch_page(path string, return_content bool) (*models.Page, error) {
 		}
 		page.Views = page_views
 		if !return_content {
-			page.Content = ""
+			page.Content = nil
 		}
 		page.CanEdit = false
 		return page, nil
@@ -144,7 +150,7 @@ func editPage(page *models.Page) (*models.Page, error) {
 		return nil, err
 	} else {
 		if !return_content {
-			page.Content = ""
+			page.Content = nil
 		}
 		page.CanEdit = true
 		page.Url = GetPageUrl(page.Path)

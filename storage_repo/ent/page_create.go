@@ -38,8 +38,8 @@ func (pc *PageCreate) SetTitle(s string) *PageCreate {
 }
 
 // SetContent sets the "content" field.
-func (pc *PageCreate) SetContent(s string) *PageCreate {
-	pc.mutation.SetContent(s)
+func (pc *PageCreate) SetContent(i []interface{}) *PageCreate {
+	pc.mutation.SetContent(i)
 	return pc
 }
 
@@ -254,11 +254,6 @@ func (pc *PageCreate) check() error {
 	if _, ok := pc.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Page.content"`)}
 	}
-	if v, ok := pc.mutation.Content(); ok {
-		if err := page.ContentValidator(v); err != nil {
-			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Page.content": %w`, err)}
-		}
-	}
 	if _, ok := pc.mutation.URL(); !ok {
 		return &ValidationError{Name: "url", err: errors.New(`ent: missing required field "Page.url"`)}
 	}
@@ -317,7 +312,7 @@ func (pc *PageCreate) createSpec() (*Page, *sqlgraph.CreateSpec) {
 		_node.Title = value
 	}
 	if value, ok := pc.mutation.Content(); ok {
-		_spec.SetField(page.FieldContent, field.TypeString, value)
+		_spec.SetField(page.FieldContent, field.TypeJSON, value)
 		_node.Content = value
 	}
 	if value, ok := pc.mutation.URL(); ok {

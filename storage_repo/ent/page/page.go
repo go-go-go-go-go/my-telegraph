@@ -61,8 +61,6 @@ var (
 	PathValidator func(string) error
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
-	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
-	ContentValidator func(string) error
 	// DefaultURL holds the default value on creation for the "url" field.
 	DefaultURL string
 	// DefaultDescription holds the default value on creation for the "description" field.

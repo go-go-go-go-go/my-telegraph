@@ -142,7 +142,7 @@ func (s *StorageRepoSqlite3) GetAccountInfo(access_token string, fields []string
 }
 
 func (s *StorageRepoSqlite3) CreatePage(page *models.Page) (*models.Page, error) {
-	p, err := s.client.Page.
+	t := s.client.Page.
 		Create().
 		SetAccountID(page.AccountId).
 		SetTitle(page.Title).
@@ -151,8 +151,8 @@ func (s *StorageRepoSqlite3) CreatePage(page *models.Page) (*models.Page, error)
 		SetImageURL(page.ImageUrl).
 		SetAuthorName(page.AuthorName).
 		SetAuthorURL(page.AuthorUrl).
-		SetContent(page.Content).
-		Save(s.ctx)
+		SetContent(page.Content)
+	p, err := t.Save(s.ctx)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -259,7 +259,7 @@ func (s *StorageRepoSqlite3) EditPage(page_id int, page *models.Page) (*models.P
 	if page.AuthorUrl != "" {
 		t = t.SetAuthorURL(page.AuthorUrl)
 	}
-	if page.Content != "" {
+	if page.Content != nil {
 		t = t.SetContent(page.Content)
 	}
 	u, err := t.Save(s.ctx)

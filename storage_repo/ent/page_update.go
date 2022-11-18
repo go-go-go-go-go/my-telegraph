@@ -11,6 +11,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -53,8 +54,14 @@ func (pu *PageUpdate) SetTitle(s string) *PageUpdate {
 }
 
 // SetContent sets the "content" field.
-func (pu *PageUpdate) SetContent(s string) *PageUpdate {
-	pu.mutation.SetContent(s)
+func (pu *PageUpdate) SetContent(i []interface{}) *PageUpdate {
+	pu.mutation.SetContent(i)
+	return pu
+}
+
+// AppendContent appends i to the "content" field.
+func (pu *PageUpdate) AppendContent(i []interface{}) *PageUpdate {
+	pu.mutation.AppendContent(i)
 	return pu
 }
 
@@ -226,11 +233,6 @@ func (pu *PageUpdate) check() error {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Page.title": %w`, err)}
 		}
 	}
-	if v, ok := pu.mutation.Content(); ok {
-		if err := page.ContentValidator(v); err != nil {
-			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Page.content": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -265,7 +267,12 @@ func (pu *PageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(page.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.Content(); ok {
-		_spec.SetField(page.FieldContent, field.TypeString, value)
+		_spec.SetField(page.FieldContent, field.TypeJSON, value)
+	}
+	if value, ok := pu.mutation.AppendedContent(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, page.FieldContent, value)
+		})
 	}
 	if value, ok := pu.mutation.URL(); ok {
 		_spec.SetField(page.FieldURL, field.TypeString, value)
@@ -333,8 +340,14 @@ func (puo *PageUpdateOne) SetTitle(s string) *PageUpdateOne {
 }
 
 // SetContent sets the "content" field.
-func (puo *PageUpdateOne) SetContent(s string) *PageUpdateOne {
-	puo.mutation.SetContent(s)
+func (puo *PageUpdateOne) SetContent(i []interface{}) *PageUpdateOne {
+	puo.mutation.SetContent(i)
+	return puo
+}
+
+// AppendContent appends i to the "content" field.
+func (puo *PageUpdateOne) AppendContent(i []interface{}) *PageUpdateOne {
+	puo.mutation.AppendContent(i)
 	return puo
 }
 
@@ -519,11 +532,6 @@ func (puo *PageUpdateOne) check() error {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Page.title": %w`, err)}
 		}
 	}
-	if v, ok := puo.mutation.Content(); ok {
-		if err := page.ContentValidator(v); err != nil {
-			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Page.content": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -575,7 +583,12 @@ func (puo *PageUpdateOne) sqlSave(ctx context.Context) (_node *Page, err error) 
 		_spec.SetField(page.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.Content(); ok {
-		_spec.SetField(page.FieldContent, field.TypeString, value)
+		_spec.SetField(page.FieldContent, field.TypeJSON, value)
+	}
+	if value, ok := puo.mutation.AppendedContent(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, page.FieldContent, value)
+		})
 	}
 	if value, ok := puo.mutation.URL(); ok {
 		_spec.SetField(page.FieldURL, field.TypeString, value)

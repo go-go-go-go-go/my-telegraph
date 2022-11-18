@@ -35,7 +35,8 @@ func GeneratePagePath(title string) string {
 }
 
 func GetPageUrl(path string) string {
-	return fmt.Sprintf("http://%s:%d/getPage/%s", config.HOST, config.PORT, path)
+	return fmt.Sprintf("http://%s:%d/getPage/%s",
+		config.GetConfigs().ExternalHost, config.GetConfigs().Port, path)
 }
 
 func ValidateAccessToken(token string) (*models.Account, error) {

@@ -11,6 +11,6 @@ import (
 func main() {
 	r := gin.Default()
 	apis.RegisterApis(r)
-	url := fmt.Sprintf("%s:%d", config.HOST, config.PORT)
+	url := fmt.Sprintf("%s:%d", config.GetConfigs().Host, config.GetConfigs().Port)
 	r.Run(url)
 }

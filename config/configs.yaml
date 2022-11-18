@@ -1,0 +1,6 @@
+
+host: "0.0.0.0"
+port: 8080
+external_host: "127.0.0.1"
+storage_type: "sqlite3"
+db_url: "file:data/telegraph.db?_fk=1"

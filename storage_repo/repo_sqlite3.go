@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"telegraph/config"
 	"telegraph/models"
 	"telegraph/storage_repo/ent"
 	account_lib "telegraph/storage_repo/ent/account"
@@ -18,16 +19,18 @@ type StorageRepoSqlite3 struct {
 }
 
 func (s *StorageRepoSqlite3) Init(ctx context.Context) error {
-	client, err := ent.Open("sqlite3", "file:data/telegraph.db?_fk=1")
+	client, err := ent.Open("sqlite3", config.GetConfigs().DbUrl)
 	if err != nil {
-		log.Printf("failed opening connection to sqlite: %v", err)
-		return err
+		msg := fmt.Sprintf("Failed opening connection to sqlite: %v", err)
+		log.Println(msg)
+		panic(err)
 	}
 	// defer client.Close()
 	// Run the auto migration tool.
 	if err := client.Schema.Create(context.Background()); err != nil {
-		log.Printf("failed creating schema resources: %v", err)
-		return err
+		msg := fmt.Sprintf("Failed creating schema resources: %v", err)
+		log.Println(msg)
+		panic(err)
 	}
 	s.client = client
 	s.ctx = ctx
@@ -35,7 +38,6 @@ func (s *StorageRepoSqlite3) Init(ctx context.Context) error {
 }
 
 func convert_account_type(u *ent.Account) *models.Account {
-	fmt.Println(u)
 	account := &models.Account{}
 	account.Id = u.ID
 	account.AuthorName = u.AuthorName

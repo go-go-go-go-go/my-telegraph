@@ -54,7 +54,7 @@ func (s *StorageRepoMongo) CreatePage(page *models.Page) (*models.Page, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (s *StorageRepoMongo) GetPage(path string) (*models.Page, error) {
+func (s *StorageRepoMongo) GetPage(path string, view_add bool) (*models.Page, error) {
 	// TODO
 	return nil, errors.New("not implemented")
 }

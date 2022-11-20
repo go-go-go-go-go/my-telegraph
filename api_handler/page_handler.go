@@ -84,7 +84,7 @@ func GetPage(c *gin.Context) {
 
 func fetch_page(path string, return_content bool) (*models.Page, error) {
 	repo := storage_repo.GetStorageRepo(context.Background())
-	page, err := repo.GetPage(path)
+	page, err := repo.GetPage(path, true)
 
 	if err != nil {
 		return nil, err
@@ -105,22 +105,28 @@ func fetch_page(path string, return_content bool) (*models.Page, error) {
 
 func EditPage(c *gin.Context) {
 	path := c.Param("path")
-	var page models.Page
-	err := c.ShouldBindQuery(&page)
+	var page_req models.PageRequest
+	err := c.ShouldBindQuery(&page_req)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to parse query: %s", err)
 		ReturnError(c, http.StatusBadRequest, msg)
 		return
 	}
-	account, err := ValidateAccessToken(page.AccessToken)
+	account, err := ValidateAccessToken(page_req.AccessToken)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to validate access token: %s", err)
 		ReturnError(c, http.StatusForbidden, msg)
 		return
 	}
-	// println(account)
+	println(account)
+	page, err := models.MakePage(&page_req)
+	if err != nil {
+		msg := fmt.Sprintf("Failed to parse content: %s", err)
+		ReturnError(c, http.StatusForbidden, msg)
+		return
+	}
 	repo := storage_repo.GetStorageRepo(context.Background())
-	current_page, err := repo.GetPage(path)
+	current_page, err := repo.GetPage(path, false)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to get page by path: %s", path)
 		ReturnError(c, http.StatusNotFound, msg)
@@ -133,7 +139,7 @@ func EditPage(c *gin.Context) {
 	page.Path = path
 	page.Id = current_page.Id
 	fmt.Println("Prepared to update page", page)
-	p, err := editPage(&page)
+	p, err := editPage(page)
 	if err == nil {
 		ReturnSuccess(c, http.StatusOK, p)
 	} else {

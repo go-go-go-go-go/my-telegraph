@@ -227,7 +227,7 @@ func (s *StorageRepoSqlite3) GetPageView(path string, year int, month int, day i
 	}
 }
 
-func (s *StorageRepoSqlite3) GetPage(path string) (*models.Page, error) {
+func (s *StorageRepoSqlite3) GetPage(path string, view_add bool) (*models.Page, error) {
 	p, err := s.client.Page.
 		Query().
 		Where(page_lib.Path(path)).
@@ -237,7 +237,9 @@ func (s *StorageRepoSqlite3) GetPage(path string) (*models.Page, error) {
 	}
 	log.Println("page returned: ", p)
 	page := convert_page_type(p)
-	_ = s.LogPageView(page)
+	if view_add {
+		_ = s.LogPageView(page)
+	}
 	return page, nil
 }
 
